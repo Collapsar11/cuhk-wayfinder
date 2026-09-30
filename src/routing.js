@@ -62,32 +62,37 @@ export function planTransit(graph,data,stops,from,to,{date=new Date(),profile='f
  const trips=createTrips(data,stops,date,teaching);const a=graph.snap(from),b=graph.snap(to);if(!a||!b)return {walk,transit:null,reason:'coverage'};
  const originTree=graph.tree(a,profile),destTree=graph.tree(b,profile,true);
  const blocked=new Set(data.alerts.flatMap(a=>a.stops));const use=stops.filter(s=>!blocked.has(s.id)).map(s=>({...s,snap:graph.snap(s.coords)})).filter(s=>s.snap);
- const index=new Map(use.map((s,i)=>[s.id,i]));const labels=new Float64Array(use.length).fill(Infinity),prev=new Array(use.length),q=new Heap();
+ const index=new Map(use.map((s,i)=>[s.id,i])),nStops=use.length;
+ // Distinct states preserve bus alternatives even when walking is earlier:
+ // 0 = origin access; 1 = just alighted; 2 = one walking transfer after alighting.
+ // Only state 1 can finish; transfer walks cannot chain into unlimited access walks.
+ const labels=new Float64Array(nStops*3).fill(Infinity),prev=new Array(nStops*3),q=new Heap();
  let best=Infinity,finish=-1;
- const maxWalk=12; // minutes per boarding/transfer access leg (900m nominal)
- for(let i=0;i<use.length;i++){const s=use[i];const t=originTree.times[s.snap.id]+(a.d+s.snap.d)/75;if(t<=maxWalk){labels[i]=day.minute+t;prev[i]={kind:'walk',from:-1,minutes:t};q.push([labels[i],i]);}}
+ const maxWalk=12;
+ for(let i=0;i<nStops;i++){const s=use[i];const t=originTree.times[s.snap.id]+(a.d+s.snap.d)/75;if(t<=maxWalk){labels[i]=day.minute+t;prev[i]={kind:'walk',from:-1,minutes:t};q.push([labels[i],i]);}}
  const stopTrips=new Map();for(const t of trips)for(let i=0;i<t.ids.length-1;i++){if(!stopTrips.has(t.ids[i]))stopTrips.set(t.ids[i],[]);stopTrips.get(t.ids[i]).push({trip:t,at:i});}
- while(q.a.length){const [time,i]=q.pop();if(time!==labels[i]||time>day.minute+180||time>=best)continue;const s=use[i];
-  const tail=destTree.times[s.snap.id]+(b.d+s.snap.d)/75;if(tail<=maxWalk&&time+tail<best){best=time+tail;finish=i;}
-  // Transfer on real walking graph, not straight-line distance.
-  const tree=graph.tree(s.snap,profile);
-  for(let j=0;j<use.length;j++){if(j===i)continue;const t=tree.times[use[j].snap.id]+(s.snap.d+use[j].snap.d)/75;if(t<=maxWalk&&time+t<labels[j]){labels[j]=time+t;prev[j]={kind:'walk',from:i,minutes:t};q.push([labels[j],j]);}}
+ while(q.a.length){const [time,stateId]=q.pop();if(time!==labels[stateId]||time>day.minute+180||time>=best)continue;const i=stateId%nStops,phase=Math.floor(stateId/nStops),s=use[i];
+  if(phase===1){
+   const tail=destTree.times[s.snap.id]+(b.d+s.snap.d)/75;if(tail<=maxWalk&&time+tail<=day.minute+180&&time+tail<best){best=time+tail;finish=stateId;}
+   const tree=graph.tree(s.snap,profile);
+   for(let j=0;j<nStops;j++){if(j===i)continue;const t=tree.times[use[j].snap.id]+(s.snap.d+use[j].snap.d)/75,next=2*nStops+j;if(t<=maxWalk&&time+t<labels[next]){labels[next]=time+t;prev[next]={kind:'walk',from:stateId,minutes:t};q.push([labels[next],next]);}}
+  }
   for(const {trip:t,at} of stopTrips.get(s.id)||[]){
    if(t.times[at]<time+1.5||t.times[at]>time+90)continue;
-   for(let n=at+1;n<t.ids.length;n++){const j=index.get(t.ids[n]);if(j===undefined||t.times[n]>=labels[j])continue;
-    labels[j]=t.times[n];prev[j]={kind:'bus',from:i,trip:t,start:at,end:n,wait:t.times[at]-time,minutes:t.times[n]-t.times[at]};q.push([labels[j],j]);
+   for(let j=at+1;j<t.ids.length;j++){const stop=index.get(t.ids[j]);if(stop===undefined)continue;const next=nStops+stop;if(t.times[j]>=labels[next])continue;
+    labels[next]=t.times[j];prev[next]={kind:'bus',from:stateId,trip:t,start:at,end:j,wait:t.times[at]-time,minutes:t.times[j]-t.times[at]};q.push([labels[next],next]);
    }
   }
  }
  if(finish<0)return {walk,transit:null,reason:'no-service'};
- const legs=[];let i=finish;
- const lastWalk=graph.route(use[i].coords,to,profile);if(lastWalk)legs.push({...lastWalk,fromName:use[i].name,toName:'目的地'});
+ const legs=[];let stateId=finish;
+ const lastWalk=graph.route(use[stateId%nStops].coords,to,profile);if(lastWalk)legs.push({...lastWalk,fromName:use[stateId%nStops].name,toName:'目的地'});
  let count=0;
- while(i>=0&&count++<use.length+1){const e=prev[i];if(!e)break;
-  if(e.kind==='walk'){const r=graph.route(e.from<0?from:use[e.from].coords,use[i].coords,profile);if(!r)return {walk,transit:null,reason:'coverage'};legs.push({...r,fromName:e.from<0?'起点':use[e.from].name,toName:use[i].name});}
-  else {const seq=e.trip.ids.slice(e.start,e.end+1);legs.push({...e,route:e.trip.route,name:e.trip.name,source:e.trip.source,departure:e.trip.times[e.start],arrival:e.trip.times[e.end],fromName:use[e.from].name,toName:use[i].name,stops:seq,geometry:seq.map(id=>stops.find(s=>s.id===id).coords)});}
-  i=e.from;
+ while(stateId>=0&&count++<nStops*3+1){const e=prev[stateId];if(!e)break;const i=stateId%nStops,fromStop=e.from<0?null:use[e.from%nStops];
+  if(e.kind==='walk'){const r=graph.route(fromStop?fromStop.coords:from,use[i].coords,profile);if(!r)return {walk,transit:null,reason:'coverage'};legs.push({...r,fromName:fromStop?fromStop.name:'起点',toName:use[i].name});}
+  else {const seq=e.trip.ids.slice(e.start,e.end+1);legs.push({...e,route:e.trip.route,name:e.trip.name,source:e.trip.source,departure:e.trip.times[e.start],arrival:e.trip.times[e.end],fromName:fromStop.name,toName:use[i].name,stops:seq,geometry:seq.map(id=>stops.find(s=>s.id===id).coords)});}
+  stateId=e.from;
  }
- legs.reverse();if(!legs.some(l=>l.kind==='bus'))return {walk,transit:null,reason:'walk-better'};
+ legs.reverse();
  return {walk,transit:{kind:'transit',minutes:best-day.minute,arrival:best,legs,walkingMinutes:legs.filter(x=>x.kind==='walk').reduce((n,l)=>n+l.minutes,0),meters:legs.filter(x=>x.kind==='walk').reduce((n,l)=>n+l.meters,0)},reason:null};
 }
