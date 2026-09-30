@@ -1,0 +1,333 @@
+{
+  "snapshot": "2026-10-01 Asia/Hong_Kong",
+  "rawSources": [
+    {
+      "file": "locations-en.js",
+      "url": "https://www.cuhk.edu.hk/english/js/campus/cuhk_location_db.js",
+      "retrievedAt": "2026-09-30T19:05:12.014246+00:00",
+      "bytes": 397518,
+      "status": "ok",
+      "sha256": "accd4a1730a574b196bcc5f27b31db9b074ac09d9a5ee905ba7ffc98c162c72e"
+    },
+    {
+      "file": "locations-zh.js",
+      "url": "https://www.cuhk.edu.hk/chinese/js/campus/cuhk_location_db.js",
+      "retrievedAt": "2026-09-30T19:05:12.014796+00:00",
+      "bytes": 397518,
+      "status": "ok",
+      "sha256": "accd4a1730a574b196bcc5f27b31db9b074ac09d9a5ee905ba7ffc98c162c72e"
+    },
+    {
+      "file": "map-config.js",
+      "url": "https://www.cuhk.edu.hk/english/js/campus/cuhk_map_config.js",
+      "retrievedAt": "2026-09-30T19:05:12.014950+00:00",
+      "bytes": 41468,
+      "status": "ok",
+      "sha256": "27fd9fc5bdacacb18b1a650796db4910ddce5d26cc02a5cc3e8ddeedda224670"
+    },
+    {
+      "file": "map-init.js",
+      "url": "https://www.cuhk.edu.hk/english/js/campus/cuhk_map_init.js",
+      "retrievedAt": "2026-09-30T19:05:12.015105+00:00",
+      "bytes": 39051,
+      "status": "ok",
+      "sha256": "88ff14536171a8533293f0c2100ed0934dcdbb3b4c1f2043b80345a9f056b420"
+    },
+    {
+      "file": "food.html",
+      "url": "https://ueatwhat.com/",
+      "retrievedAt": "2026-09-30T19:05:12.015251+00:00",
+      "bytes": 2025,
+      "status": "ok",
+      "sha256": "b524c929b256bca775236267a89629a4ff8ff7558dd0b45b70389cea7e6ec8c5"
+    },
+    {
+      "file": "accommodation.html",
+      "url": "https://www.cuhk.edu.hk/chinese/campus/accommodation.html",
+      "retrievedAt": "2026-09-30T19:05:12.015381+00:00",
+      "bytes": 89639,
+      "status": "ok",
+      "sha256": "2f93114ebb05aae87bd93f58d21e4eb02a5a0ecb6e1402525ecc1ef82b7c2184"
+    },
+    {
+      "file": "bus-1.html",
+      "url": "https://transport.cuhk.edu.hk/route/1/",
+      "retrievedAt": "2026-09-30T19:05:12.742421+00:00",
+      "bytes": 50613,
+      "status": "ok",
+      "sha256": "442900d858521a3f34ab79db326817c58c2d7e99f4e55a4bc292da60231cd0ef"
+    },
+    {
+      "file": "bus-2.html",
+      "url": "https://transport.cuhk.edu.hk/route/2/",
+      "retrievedAt": "2026-09-30T19:05:13.067453+00:00",
+      "bytes": 52102,
+      "status": "ok",
+      "sha256": "9bd34be770a614df2f9b52bcb60f45b633d1d6b44900986370eab0a883e818bb"
+    },
+    {
+      "file": "bus-2s.html",
+      "url": "https://transport.cuhk.edu.hk/route/2s/",
+      "retrievedAt": "2026-09-30T19:05:13.076890+00:00",
+      "bytes": 52606,
+      "status": "ok",
+      "sha256": "cd42bedeb957c3caa007d8696ff5dfc1274b05c822622bec7376f4f20ebf0baa"
+    },
+    {
+      "file": "bus-3.html",
+      "url": "https://transport.cuhk.edu.hk/route/3/",
+      "retrievedAt": "2026-09-30T19:05:13.164835+00:00",
+      "bytes": 53659,
+      "status": "ok",
+      "sha256": "ef55949c50f7e1b9840a2b341b5b2436f4862cc7880c0e119ebe2f5c4aab82fb"
+    },
+    {
+      "file": "bus-4.html",
+      "url": "https://transport.cuhk.edu.hk/route/4/",
+      "retrievedAt": "2026-09-30T19:05:13.286904+00:00",
+      "bytes": 53713,
+      "status": "ok",
+      "sha256": "af7898ddcd23b78bfcebd5314ad7a255918979019e5b98dd1b854c1c6121daa3"
+    },
+    {
+      "file": "bus-8.html",
+      "url": "https://transport.cuhk.edu.hk/route/8/",
+      "retrievedAt": "2026-09-30T19:05:13.376203+00:00",
+      "bytes": 56263,
+      "status": "ok",
+      "sha256": "52de636d389de0977994767b6b32abf91e1f1e29c9460209ddabc5394dd160c7"
+    },
+    {
+      "file": "bus-n.html",
+      "url": "https://transport.cuhk.edu.hk/route/n/",
+      "retrievedAt": "2026-09-30T19:05:14.338630+00:00",
+      "bytes": 55615,
+      "status": "ok",
+      "sha256": "11f32dfcd80645aae667085009dd11840d924b09769c64da14a91410369f837b"
+    },
+    {
+      "file": "bus-h.html",
+      "url": "https://transport.cuhk.edu.hk/route/h/",
+      "retrievedAt": "2026-09-30T19:05:14.392526+00:00",
+      "bytes": 55688,
+      "status": "ok",
+      "sha256": "d7b620c9e18a95d6ba7a4e50d84bc26d112bea3a7b5843c0a9f6c36c54a05c8c"
+    },
+    {
+      "file": "bus-5.html",
+      "url": "https://transport.cuhk.edu.hk/route/5/",
+      "retrievedAt": "2026-09-30T19:05:14.425645+00:00",
+      "bytes": 50277,
+      "status": "ok",
+      "sha256": "2bc599081ae7d7c6359f704f181cd7a189d2d7f3e4a9c4749ad842279fcb79cd"
+    },
+    {
+      "file": "bus-6a.html",
+      "url": "https://transport.cuhk.edu.hk/route/6a/",
+      "retrievedAt": "2026-09-30T19:05:14.479344+00:00",
+      "bytes": 50377,
+      "status": "ok",
+      "sha256": "1415b067c5c37bc41abda5fe0ff2793f53925bc22608e87901c86752676979cf"
+    },
+    {
+      "file": "bus-6b.html",
+      "url": "https://transport.cuhk.edu.hk/route/6b/",
+      "retrievedAt": "2026-09-30T19:05:14.740027+00:00",
+      "bytes": 48956,
+      "status": "ok",
+      "sha256": "e1b11cd1365734e1e6b8e3cfe5db4f7c41a318e4c2a2f299e0f483673822bbd4"
+    },
+    {
+      "file": "bus-7.html",
+      "url": "https://transport.cuhk.edu.hk/route/7/",
+      "retrievedAt": "2026-09-30T19:05:14.880713+00:00",
+      "bytes": 49753,
+      "status": "ok",
+      "sha256": "b0bd5387034a89e399a07906248a90e1b5d63ca9e27160635a89363ade472aca"
+    },
+    {
+      "file": "bus-up.html",
+      "url": "https://transport.cuhk.edu.hk/route/up/",
+      "retrievedAt": "2026-09-30T19:05:15.635085+00:00",
+      "bytes": 49447,
+      "status": "ok",
+      "sha256": "f380151c6a049d8c838aede2c84f8420e12c860875e4f6accbdbe9c55ee2b6e4"
+    },
+    {
+      "file": "bus-down.html",
+      "url": "https://transport.cuhk.edu.hk/route/down/",
+      "retrievedAt": "2026-09-30T19:05:15.743306+00:00",
+      "bytes": 49670,
+      "status": "ok",
+      "sha256": "cb463035ceb2a451f9dfb73616e31405a0a9645d72dac1df09d6c640ea4291fb"
+    },
+    {
+      "file": "food-app.js",
+      "url": "https://ueatwhat.com/assets/index-Di9-M0MJ.js",
+      "retrievedAt": "2026-09-30T19:06:02.204900+00:00",
+      "bytes": 2256903,
+      "status": "ok",
+      "sha256": "9a44ff8590d52e4a2cc3ff5f550ebc65a4b54b7a8a5a0ca1aaef39dc6a6ea449"
+    },
+    {
+      "file": "osm.xml",
+      "url": "https://api.openstreetmap.org/api/0.6/map?bbox=114.197,22.408,114.222,22.432",
+      "retrievedAt": "2026-09-30T19:06:02.205385+00:00",
+      "bytes": 12697375,
+      "status": "ok",
+      "sha256": "b78a442c83c70cfde636469d2b3f39d1fde05c91cb6116ab136517117a35c368"
+    },
+    {
+      "file": "bus-shuttle.pdf",
+      "url": "https://transport.cuhk.edu.hk/wp-content/uploads/documents/Shuttle.pdf",
+      "retrievedAt": "2026-09-30T19:06:02.205554+00:00",
+      "bytes": 276158,
+      "status": "ok",
+      "sha256": "4807f0939ab150e37fd3b715737f132bc0c970809b68635e418fa2cbecf51d91"
+    },
+    {
+      "file": "bus-night.pdf",
+      "url": "https://transport.cuhk.edu.hk/wp-content/uploads/documents/NH.pdf",
+      "retrievedAt": "2026-09-30T19:06:02.205695+00:00",
+      "bytes": 265349,
+      "status": "ok",
+      "sha256": "54fa9186d0c3bbb903aceb069e2a846ed1b6fa2d1408107f4c32901d3d4d4c3d"
+    },
+    {
+      "file": "bus-class.pdf",
+      "url": "https://transport.cuhk.edu.hk/wp-content/uploads/documents/Meet-Class.pdf",
+      "retrievedAt": "2026-09-30T19:06:03.519040+00:00",
+      "bytes": 257248,
+      "status": "ok",
+      "sha256": "f7affad6cccd9c39584cc96e8848310163f2c968ee44e1d9b19a8969a66e6a49"
+    },
+    {
+      "file": "bus-paid.pdf",
+      "url": "https://transport.cuhk.edu.hk/wp-content/uploads/documents/PSLB.pdf",
+      "retrievedAt": "2026-09-30T19:06:03.704156+00:00",
+      "bytes": 1913842,
+      "status": "ok",
+      "sha256": "c5dfc83aaf55aad9fda33ddf5fbdc3a997894937bcad0ab06e88fe5acdf214e2"
+    },
+    {
+      "file": "food-restaurants.json",
+      "url": "https://api.ueatwhat.com/api/restaurants",
+      "retrievedAt": "2026-09-30T19:07:23.932668+00:00",
+      "bytes": 37133,
+      "status": "ok",
+      "sha256": "8e3522b5a68f8b8d41f86a1a5707e3c5e28d901bd2aa1d03df49d2d77f020960"
+    },
+    {
+      "file": "food-holidays.json",
+      "url": "https://api.ueatwhat.com/api/holidays",
+      "retrievedAt": "2026-09-30T19:07:23.933151+00:00",
+      "bytes": 222,
+      "status": "ok",
+      "sha256": "b406ee4548b114456a708ed5e200029553fcd035638ebcbd8a3a2a0629a1b583"
+    },
+    {
+      "file": "food-overrides.json",
+      "url": "https://api.ueatwhat.com/api/overrides",
+      "retrievedAt": "2026-09-30T19:07:23.933330+00:00",
+      "bytes": 786,
+      "status": "ok",
+      "sha256": "72d5fa5df3d5da1c5f0772e457e8f3697df5c400634e91fbfb7699d0cd75b0b3"
+    },
+    {
+      "file": "lands-campus-network.json",
+      "url": "https://portal.csdi.gov.hk/server/rest/services/common/landsd_rcd_1637222018065_52265/MapServer/0/query",
+      "bbox": "114.198,22.412,114.214,22.429",
+      "retrievedAt": "2026-10-01",
+      "recordCount": 4469,
+      "sha256": "97d36ff7c690e302bed3403773764f92b69c0b1e2f8837657df7c2d02d759b5a",
+      "archive": "raw/lands-campus-network.json"
+    }
+  ],
+  "runtimeFiles": [
+    {
+      "file": "public/data/basemap.json",
+      "bytes": 1486350,
+      "sha256": "efd4afa47254290675cbe996d10146d1f5e02c86d9025a4e505def6b9bf5b0da"
+    },
+    {
+      "file": "public/data/food-calendar.json",
+      "bytes": 786,
+      "sha256": "b3f3827df869abc5d7a48714606089a3c3771c0bef391dd0b493b1b8c9f36cfa"
+    },
+    {
+      "file": "public/data/graph.json",
+      "bytes": 547878,
+      "sha256": "9b18d3cedaf8603f79ea2d7abbf7b269ad71a8b961034270a68d0263d26a9adf"
+    },
+    {
+      "file": "public/data/lands-graph.json",
+      "bytes": 2123922,
+      "sha256": "b5fa2b67b7139f7d3f7e068badfedd56a115b80b67ec80997acb45edb0b95c76"
+    },
+    {
+      "file": "public/data/places.json",
+      "bytes": 230210,
+      "sha256": "11abf084bca62ba215a570c4474b6e288a26ec48a2ff5ff12bf4644ad6afbc09"
+    },
+    {
+      "file": "public/data/shortcuts.json",
+      "bytes": 2537,
+      "sha256": "9f4a183d9222b50530f017f0bef10ae6994a27558f9874f860a12d5f4b48944d"
+    },
+    {
+      "file": "public/data/stops.json",
+      "bytes": 10801,
+      "sha256": "fa20bf90214c7910582583f39ffb945bf7d7b80f5bc8b96615174770cfbb2264"
+    },
+    {
+      "file": "public/data/terrain/12/3346/1785.png",
+      "bytes": 47007,
+      "sha256": "ca9078d5856f2fce9bcff6ce179f777c0a5e22629a385faaac79f3401e271738"
+    },
+    {
+      "file": "public/data/terrain/12/3346/1786.png",
+      "bytes": 57351,
+      "sha256": "ef0092084db646038f1227640e5521f05d92babdb964ce524123c3ff3b6318c8"
+    },
+    {
+      "file": "public/data/terrain/12/3346/1787.png",
+      "bytes": 47766,
+      "sha256": "b3fdd1be380a0df5bb30b57e8a0dcf5056b7fc1b69dc5090c0cefad96ef64756"
+    },
+    {
+      "file": "public/data/terrain/12/3347/1785.png",
+      "bytes": 59406,
+      "sha256": "9a1d9054012e98ac9d967f9d6260f185857c4eb3b0f9242a00531d355d4a5398"
+    },
+    {
+      "file": "public/data/terrain/12/3347/1786.png",
+      "bytes": 56481,
+      "sha256": "7aceb1e86a16289d0ac13201fdfa47f1ad6b21f997e4f2b1d65d2844fac3adb2"
+    },
+    {
+      "file": "public/data/terrain/12/3347/1787.png",
+      "bytes": 60294,
+      "sha256": "ff54e70a3ee57eb88f11df8b5fbc9230f127c84323b78ae7cc79ac07c545ee53"
+    },
+    {
+      "file": "public/data/terrain/12/3348/1785.png",
+      "bytes": 67593,
+      "sha256": "0b12149a95ec956e798d2b54a45ec3dee934252c7f252024ade12ae7dea56433"
+    },
+    {
+      "file": "public/data/terrain/12/3348/1786.png",
+      "bytes": 64871,
+      "sha256": "325145c137d727d81198e519c14568bdb1c313cd4aab52509f5ddb6a940927d6"
+    },
+    {
+      "file": "public/data/terrain/12/3348/1787.png",
+      "bytes": 52532,
+      "sha256": "cb5fedfffc91ab5473682a914cb1bfc40fbb5f54e4ed108a804f64f3cce3645a"
+    },
+    {
+      "file": "public/data/transit.json",
+      "bytes": 4120,
+      "sha256": "3eb531677e6df480bd08afe10732e84da55dfb97320e2ce80c3adc0eb1e6e0d8"
+    }
+  ]
+}
