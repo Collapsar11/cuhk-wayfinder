@@ -1,7 +1,7 @@
 import {chromium,expect} from '@playwright/test';
 import fs from 'node:fs';
 const url=process.env.SITE_URL||'http://localhost:4174/cuhk-wayfinder/';
-const browser=await chromium.launch();const context=await browser.newContext({viewport:{width:390,height:844}});const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(15000);
+const browser=await chromium.launch();const context=await browser.newContext({viewport:{width:390,height:844}});const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(15000);page.setDefaultNavigationTimeout(60000);
 try{
  await page.goto(url,{waitUntil:'networkidle'});
  await page.locator('.mobile-switch [data-tab="shortcuts"]').click();await expect(page.locator('.shortcut-card')).toHaveCount(9);

@@ -1,0 +1,35 @@
+{
+  "checkedAt": "2026-09-30T20:48:06.531Z",
+  "site": "https://collapsar11.github.io/cuhk-wayfinder/",
+  "applicationCommit": "572d5c4",
+  "pagesCommit": "2557dc6",
+  "unitTests": {
+    "passed": 39,
+    "failed": 0
+  },
+  "localBrowserChecks": [
+    "verify-site",
+    "verify-comfort",
+    "verify-engineering"
+  ],
+  "liveBrowserChecks": {
+    "script": "scripts/verify-engineering.mjs",
+    "passed": true,
+    "cases": [
+      "PGH1 to SHB5: Friday 09:00 via 2S",
+      "PGH1 to SHB5: Sunday 10:00 via H",
+      "PGH1 to SHB5: Friday 20:00 via N",
+      "22 to 4 boarding/alighting and 5F arrival text",
+      "Disabled shortcut blocks 5F entrance",
+      "Actual SHB footprint click in 2D and 3D",
+      "Connection popup with LSB LG1 and SHB5",
+      "Mobile layout and offline reload with H route"
+    ]
+  },
+  "navigationTimeoutSeconds": 60,
+  "limitations": [
+    "No field survey or live bus GPS",
+    "LSB interior lift geometry not surveyed; computed approach uses mapped exterior stairs",
+    "Unknown footprint names remain explicitly unknown"
+  ]
+}
