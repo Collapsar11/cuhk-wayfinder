@@ -11,7 +11,7 @@ for(const s of definitions){
  const old=g.nodeIds.indexOf(s.node);if(old<0)throw Error(s.node);const upper=g.nodes.length;g.nodes.push(g.nodes[old]);g.nodeIds.push(s.node+':'+s.high);
  if(s.splitWay){const idx=g.ways.findIndex(w=>w.id===s.splitWay);const w=g.ways[idx],at=w.nodes.indexOf(old);if(at<1)throw Error(s.id);g.ways.splice(idx,1,{...w,id:w.id+'-high',nodes:[...w.nodes.slice(0,at),upper],tags:{...w.tags,shortcut:s.id,level:s.high}},{...w,id:w.id+'-low',nodes:w.nodes.slice(at),tags:{...w.tags,shortcut:s.id,level:s.low}});}
  else {const upperWay=g.ways.find(w=>w.id===s.upperWay),lowerWay=g.ways.find(w=>w.id===s.lowerWay);upperWay.nodes=upperWay.nodes.map(n=>n===old?upper:n);upperWay.tags={...upperWay.tags,shortcut:s.id,level:s.high};lowerWay.tags={...lowerWay.tags,shortcut:s.id,level:s.low};}
- g.ways.push({id:'lift-'+s.id,nodes:[old,upper],tags:{highway:'elevator',shortcut:s.id,name:s.name+'电梯',fromLevel:s.low,toLevel:s.high,fixedMinutes:s.waitMinutes+s.rideMinutes}});
+ g.ways.push({id:'lift-'+s.id,nodes:[old,upper],tags:{highway:'elevator',covered:'yes',indoor:'yes',shortcut:s.id,name:s.name+'电梯',fromLevel:s.low,toLevel:s.high,fixedMinutes:s.waitMinutes+s.rideMinutes}});
 }
 // Explicit escalators and footbridge already connected in OSM; use direction, don't model as bidirectional stairs.
 const yia={id:'yia-wmy',name:'康本园 → 伍何曼原楼',coords:[22.4161608,114.2108777],low:'YIA 1/F',high:'WMY 5/F',source,osm:'https://www.openstreetmap.org/way/1426636965',description:'经康本园 1–2 楼，再到伍何曼原楼 5 楼；可接苗圃径。此段含扶手电梯，不能视作轮椅无障碍路线。',hours:'开放时间未核实',coordinateAccuracy:'OSM 扶梯与连廊；楼层来自官方指南',routeNumber:2,retrievedAt:'2026-10-01'};

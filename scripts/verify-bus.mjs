@@ -10,7 +10,7 @@ try {
  await page.locator('#bus-date').fill('2026-10-02T20:00');await page.locator('#bus-date').press('Tab');await expect(page.locator('.bus-status')).toContainText('20:00 / 20:15 / 20:30');
  await page.locator('#bus-plan').click();await page.locator('#origin').fill('大学站西');await page.locator('#origin-results [data-pick]').first().click();await page.locator('#destination').fill('錢穆圖書館');await page.locator('#destination-results [data-pick]').first().click();
  for(const [date,line] of [['2026-10-02T20:00','N'],['2026-10-04T10:00','H']]){
-  await page.locator('#departure').fill(date);await page.locator('#departure').press('Tab');await page.locator('#calculate').click();await expect(page.locator('.route-card').filter({hasText:line+' 号线'})).toBeVisible({timeout:20000});console.log(date,await page.locator('.route-card').filter({hasText:line+' 号线'}).innerText());
+  await page.locator('#departure').fill(date);await page.locator('#departure').press('Tab');await page.locator('#calculate').click();await expect(page.locator('.route-card').filter({hasText:line+' 号线'}).first()).toBeVisible({timeout:20000});console.log(date,await page.locator('.route-card').filter({hasText:line+' 号线'}).first().innerText());
  }
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();expect(errors).toEqual([]);console.log('PASS: H/N direct tabs, date rules, Sunday H and weekday N in route results; mobile layout; no page errors.');
 } finally {await browser.close();}

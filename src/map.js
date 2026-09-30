@@ -3,7 +3,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 maplibregl.setWorkerUrl(workerUrl);
 const fc=features=>({type:'FeatureCollection',features});
-const line=(coords,kind)=>({type:'Feature',properties:{kind},geometry:{type:'LineString',coordinates:coords.map(c=>[c[1],c[0]])}});
+const line=(coords,kind,cover='unknown')=>({type:'Feature',properties:{kind,cover},geometry:{type:'LineString',coordinates:(coords.length===1?[coords[0],coords[0]]:coords).map(c=>[c[1],c[0]])}});
 export async function createCampusMap(base,shortcuts,onSelect,onShortcut,onError){
  const map=new maplibregl.Map({container:'map',center:[114.2075,22.4192],zoom:16.1,pitch:48,bearing:-22,maxPitch:75,minZoom:14,maxZoom:20,maxBounds:[[114.197,22.408],[114.221,22.432]],attributionControl:{compact:true},style:{version:8,sources:{campus:{type:'geojson',data:base,attribution:'<a href="https://www.openstreetmap.org/copyright">© OpenStreetMap</a> · <a href="https://www.cuhk.edu.hk/chinese/campus/cuhk-campus-map.html">CUHK</a>'},terrain:{type:'raster-dem',tiles:[`${location.origin}${import.meta.env.BASE_URL}data/terrain/{z}/{x}/{y}.png`],encoding:'terrarium',tileSize:256,minzoom:12,maxzoom:12,bounds:[114.08,22.30,114.35,22.53],attribution:'<a href="https://github.com/tilezen/joerd/blob/master/docs/attribution.md">Terrain: Mapzen / SRTM</a>'}},layers:[
  {id:'bg',type:'background',paint:{'background-color':'#eef0e6'}},
@@ -22,6 +22,8 @@ export async function createCampusMap(base,shortcuts,onSelect,onShortcut,onError
  map.addSource('route',{type:'geojson',data:fc([]),attribution:'<a href="https://portal.csdi.gov.hk/">Map from Lands Department · © HKSAR Government / CSDI</a>'});
  map.addLayer({id:'route-halo',type:'line',source:'route',paint:{'line-color':'#fff','line-width':9,'line-opacity':.9}});
  map.addLayer({id:'route-walk',type:'line',source:'route',filter:['==',['get','kind'],'walk'],paint:{'line-color':'#20674f','line-width':5}});
+ map.addLayer({id:'route-covered',type:'line',source:'route',filter:['all',['==',['get','kind'],'walk'],['==',['get','cover'],'covered']],paint:{'line-color':'#138c9d','line-width':6}});
+ map.addLayer({id:'route-exposed',type:'line',source:'route',filter:['all',['==',['get','kind'],'walk'],['==',['get','cover'],'exposed']],paint:{'line-color':'#bf851d','line-width':5}});
  map.addLayer({id:'route-bus',type:'line',source:'route',filter:['==',['get','kind'],'bus'],paint:{'line-color':'#8253ae','line-width':4,'line-dasharray':[2,1.5]}});
  map.addLayer({id:'route-connector',type:'line',source:'route',filter:['==',['get','kind'],'connector'],paint:{'line-color':'#dd945c','line-width':3,'line-dasharray':[1,2]}});
  for(const s of shortcuts){const el=document.createElement('button');el.className='lift-marker';el.textContent='↥';el.title=s.name+' · '+s.low+' ↔ '+s.high;el.setAttribute('aria-label',el.title);el.onclick=e=>{e.stopPropagation();onShortcut(s.id);};new maplibregl.Marker({element:el}).setLngLat([s.coords[1],s.coords[0]]).addTo(map);}
@@ -32,7 +34,7 @@ export async function createCampusMap(base,shortcuts,onSelect,onShortcut,onError
   focus(c,z=17.5){map.flyTo({center:[c[1],c[0]],zoom:z,duration:800});},
   three(enabled){map.easeTo({pitch:enabled?55:0,bearing:enabled?-22:0,duration:650});map.setLayoutProperty('buildings','visibility','visible');map.setPaintProperty('buildings','fill-extrusion-height',enabled?['case',['>', ['get','height'],0],['get','height'],['>', ['get','levels'],0],['*',['get','levels'],3.3],12]:0);map.setTerrain(enabled?{source:'terrain',exaggeration:1}:null);},
   route(r,from,to){startMarker?.remove();endMarker?.remove();if(!r){map.getSource('route').setData(fc([]));return;}
-   const features=[],legs=r.kind==='transit'?r.legs:[r];for(const l of legs){features.push(line(l.geometry,l.kind==='bus'?'bus':'walk'));for(const c of l.connectors||[])features.push(line(c,'connector'));}
+   const features=[],legs=r.kind==='transit'?r.legs:[r];for(const l of legs){if(l.kind==='bus')features.push(line(l.geometry,'bus'));else if(l.segments?.length)l.segments.forEach((s,i)=>features.push(line(l.geometry.slice(i,i+2),'walk',s.cover)));else if(l.geometry.length)features.push(line(l.geometry,'walk'));for(const c of l.connectors||[])features.push(line(c,'connector'));}
    map.getSource('route').setData(fc(features));const bounds=new maplibregl.LngLatBounds();for(const f of features)for(const c of f.geometry.coordinates)bounds.extend(c);map.fitBounds(bounds,{padding:{top:85,bottom:85,left:65,right:65},maxZoom:18,pitch:map.getPitch(),duration:700});
    const make=(c,text,cls)=>{const e=document.createElement('span');e.className='endpoint '+cls;e.textContent=text;return new maplibregl.Marker({element:e}).setLngLat([c[1],c[0]]).addTo(map);};startMarker=make(from,'起','');endMarker=make(to,'终','end');
   },resize(){map.resize();}

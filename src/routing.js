@@ -1,31 +1,84 @@
+import {blankMetrics,sumMetrics,coverType,preferencePenalty} from './comfort.js';
 export const distance=(a,b)=>{const rad=Math.PI/180,lat=(a[0]+b[0])/2*rad;return Math.hypot((a[0]-b[0])*rad,(a[1]-b[1])*rad*Math.cos(lat))*6371000;};
 export class Heap{
  constructor(){this.a=[];}push(v){let i=this.a.length;this.a.push(v);while(i){let p=(i-1)>>1;if(this.a[p][0]<=v[0])break;this.a[i]=this.a[p];i=p;}this.a[i]=v;}
  pop(){if(!this.a.length)return;const top=this.a[0],end=this.a.pop();if(this.a.length){let i=0;while(i*2+1<this.a.length){let c=i*2+1;if(c+1<this.a.length&&this.a[c+1][0]<this.a[c][0])c++;if(this.a[c][0]>=end[0])break;this.a[i]=this.a[c];i=c;}this.a[i]=end;}return top;}
 }
-export class WalkGraph{
- constructor(data,{shortcuts=true,elevatorWait=1.5}={}){this.source=data.source;this.shortcuts=shortcuts;this.elevatorWait=elevatorWait;this.nodes=data.nodes;this.ways=data.ways;this.adj=this.nodes.map(()=>[]);this.rev=this.nodes.map(()=>[]);this.cache=new Map();
-  for(let w=0;w<this.ways.length;w++){const way=this.ways[w],t=way.tags;if(t.shortcut&&!shortcuts)continue;for(let i=1;i<way.nodes.length;i++){const a=way.nodes[i-1],b=way.nodes[i],d=distance(this.nodes[a],this.nodes[b]);if(!d&&!t.fixedMinutes)continue;
-   const add=(a,b,dir)=>{const edge={to:b,d,w,dir};this.adj[a].push(edge);this.rev[b].push({...edge,to:a});};
-   if(t['oneway:foot']!=='-1'&&t['foot:forward']!=='no')add(a,b,1);
-   if(t['oneway:foot']!=='yes'&&t['oneway:foot']!=='1'&&t['foot:backward']!=='no')add(b,a,-1);
-  }}
-  const seen=new Set(),components=[];for(let i=0;i<this.nodes.length;i++){if(seen.has(i))continue;const todo=[i],component=[];seen.add(i);while(todo.length){const n=todo.pop();component.push(n);for(const e of [...this.adj[n],...this.rev[n]])if(!seen.has(e.to)){seen.add(e.to);todo.push(e.to);}}components.push(component);}components.sort((a,b)=>b.length-a.length);this.snapNodes=components[0]?.length>100?components[0]:this.nodes.map((_,i)=>i);
+export class WalkGraph {
+ constructor(data,{shortcuts=true,elevatorWait=1.5,avoidSteps=false,sunFactor=1}={}) {
+  this.source=data.source;this.shortcuts=shortcuts;this.elevatorWait=elevatorWait;this.avoidSteps=avoidSteps;this.sunFactor=sunFactor;
+  this.nodes=data.nodes;this.ways=data.ways;this.adj=this.nodes.map(()=>[]);this.rev=this.nodes.map(()=>[]);this.cache=new Map();
+  for(let w=0;w<this.ways.length;w++){
+   const way=this.ways[w],t=way.tags;if(t.shortcut&&!shortcuts)continue;
+   for(let i=1;i<way.nodes.length;i++){
+    const a=way.nodes[i-1],b=way.nodes[i],d=distance(this.nodes[a],this.nodes[b]);if(!d&&!t.fixedMinutes)continue;
+    const z1=this.nodes[a][2],z2=this.nodes[b][2],incline=parseFloat(t.incline);
+    const outdoor=!t.shortcut&&!t.bridge&&!t.tunnel&&!t.level&&(!t.layer||t.layer==='0');
+    const estimate=outdoor&&data.terrainElevations?data.terrainElevations[b]-data.terrainElevations[a]:null;
+    const rise=Number.isFinite(z1)&&Number.isFinite(z2)?z2-z1:Number.isFinite(t.rise)?t.rise:Number.isFinite(incline)?d*incline/100:estimate;
+    const add=(a,b,dir)=>{const e={from:a,to:b,d,w,dir,rise,estimatedRise:estimate!==null&&!Number.isFinite(incline)&&!Number.isFinite(z1)};this.adj[a].push(e);this.rev[b].push({...e,to:a,from:b});};
+    if(t['oneway:foot']!=='-1'&&t['foot:forward']!=='no')add(a,b,1);
+    if(t['oneway:foot']!=='yes'&&t['oneway:foot']!=='1'&&t['foot:backward']!=='no')add(b,a,-1);
+   }
+  }
+  const seen=new Set(),components=[];
+  for(let i=0;i<this.nodes.length;i++){if(seen.has(i))continue;const todo=[i],component=[];seen.add(i);while(todo.length){const n=todo.pop();component.push(n);for(const e of [...this.adj[n],...this.rev[n]])if(!seen.has(e.to)){seen.add(e.to);todo.push(e.to);}}components.push(component);}
+  components.sort((a,b)=>b.length-a.length);this.snapNodes=components[0]?.length>100?components[0]:this.nodes.map((_,i)=>i);
  }
  snap(coord){let d=Infinity,id=-1;for(const i of this.snapNodes){if(this.adj[i].some(e=>this.ways[e.w].tags.highway==='elevator'))continue;const x=distance(coord,this.nodes[i]);if(x<d){id=i;d=x;}}return d<=120?{id,d,coord}:null;}
- weight(e,profile){const t=this.ways[e.w].tags;if(t.shortcut&&!this.shortcuts)return Infinity;if(profile==='no-steps'&&(t.highway==='steps'||t.wheelchair==='no'))return Infinity;if(t.fixedMinutes)return Math.max(0,t.fixedMinutes-1.5)+this.elevatorWait;
-  // Nominal 4.5 km/h; stairs 2.4 km/h. Penalize only explicit incline tags, not fabricated elevation.
-  const incline=parseFloat(t.incline);const uphill=Number.isFinite(incline)?Math.max(0,incline*e.dir):0;
+ duration(e,profile='fast'){
+  const t=this.ways[e.w].tags;
+  if(t.shortcut&&!this.shortcuts||(profile==='no-steps'||this.avoidSteps)&&(t.highway==='steps'||t.wheelchair==='no'))return Infinity;
+  if(t.fixedMinutes)return Math.max(0,t.fixedMinutes-1.5)+this.elevatorWait;
+  if(t.conveying)return e.d/45;
+  const incline=e.rise===null?parseFloat(t.incline):e.rise/Math.max(e.d,.1)*100;
+  const uphill=Number.isFinite(incline)?Math.max(0,incline*e.dir):0;
   return e.d/(t.highway==='steps'?40:75)*(1+Math.min(uphill,30)/20);
  }
- tree(snap,profile='fast',reverse=false){if(!snap)return null;const key=`${snap.id}:${profile}:${reverse}`;if(this.cache.has(key))return this.cache.get(key);
-  const times=new Float64Array(this.nodes.length).fill(Infinity),prev=new Int32Array(this.nodes.length).fill(-1),edges=new Array(this.nodes.length);times[snap.id]=0;const q=new Heap();q.push([0,snap.id]);const adj=reverse?this.rev:this.adj;
-  while(q.a.length){const [cost,id]=q.pop();if(cost!==times[id])continue;for(const e of adj[id]){const n=cost+this.weight(e,profile);if(n<times[e.to]){times[e.to]=n;prev[e.to]=id;edges[e.to]=e;q.push([n,e.to]);}}}
-  const r={times,prev,edges,root:snap.id,reverse};if(this.cache.size>80)this.cache.delete(this.cache.keys().next().value);this.cache.set(key,r);return r;
+ metrics(e){
+  if(e.metrics)return e.metrics;
+  const t=this.ways[e.w].tags,m=blankMetrics(),cover=coverType(t),mechanical=t.highway==='elevator'||!!t.conveying;
+  m[cover+'Meters']=e.d; // 'unknown' is named explicitly below.
+  if(cover==='unknown'){m.unknownCoverMeters=e.d;delete m.unknownMeters;}
+  const duration=this.duration(e);
+  if(cover==='exposed')m.exposedMinutes=duration;if(cover==='unknown')m.unknownCoverMinutes=duration;
+  if(!mechanical){if(e.rise!==null){m.knownSlopeMeters=e.d;if(e.estimatedRise)m.estimatedSlopeMeters=e.d;m.ascent=Math.max(0,e.rise*e.dir);m.descent=Math.max(0,-e.rise*e.dir);}else m.unknownSlopeMeters=e.d;}
+  m.stairs=t.highway==='steps'&&!t.conveying?e.d:0;m.escalatorMeters=t.conveying?e.d:0;m.elevatorCount=t.highway==='elevator'?1:0;
+  e.metrics=m;return m;
  }
- route(from,to,profile='fast',tree=null){const a=this.snap(from),b=this.snap(to);if(!a||!b)return null;tree=tree||this.tree(a,profile);if(!Number.isFinite(tree.times[b.id]))return null;
-  const ids=[b.id],segments=[];let i=b.id;while(i!==a.id){const e=tree.edges[i];if(!e)return null;segments.push(e);i=tree.prev[i];ids.push(i);}ids.reverse();segments.reverse();
-  return {kind:'walk',source:this.source,ascent:segments.reduce((n,e)=>n+Math.max(0,(this.ways[e.w].tags.rise||0)*e.dir),0),minutes:tree.times[b.id]+(a.d+b.d)/75,meters:segments.reduce((n,e)=>n+e.d,0)+a.d+b.d,steps:segments.filter(e=>this.ways[e.w].tags.highway==='steps').reduce((n,e)=>n+e.d,0),geometry:ids.map(id=>this.nodes[id]),connectors:[[from,this.nodes[a.id]],[this.nodes[b.id],to]],connectorMeters:a.d+b.d,segments:segments.map(e=>({meters:e.d,name:this.ways[e.w].tags['name:zh']||this.ways[e.w].tags.name||'',stairs:this.ways[e.w].tags.highway==='steps',shortcut:this.ways[e.w].tags.shortcut,kind:this.ways[e.w].tags.highway,fromLevel:e.dir===1?this.ways[e.w].tags.fromLevel:this.ways[e.w].tags.toLevel,toLevel:e.dir===1?this.ways[e.w].tags.toLevel:this.ways[e.w].tags.fromLevel}))};
+ weight(e,profile='fast'){const duration=this.duration(e,profile);return !Number.isFinite(duration)?Infinity:duration+preferencePenalty(this.metrics(e),profile,this.sunFactor);}
+ tree(snap,profile='fast',reverse=false){
+  if(!snap)return null;const key=`${snap.id}:${profile}:${reverse}`;if(this.cache.has(key))return this.cache.get(key);
+  const times=new Float64Array(this.nodes.length).fill(Infinity),costs=new Float64Array(this.nodes.length).fill(Infinity),prev=new Int32Array(this.nodes.length).fill(-1),edges=new Array(this.nodes.length);
+  times[snap.id]=costs[snap.id]=0;const q=new Heap();q.push([0,snap.id]);const adj=reverse?this.rev:this.adj;
+  while(q.a.length){const [cost,id]=q.pop();if(cost!==costs[id])continue;for(const e of adj[id]){const n=cost+this.weight(e,profile);if(n<costs[e.to]){costs[e.to]=n;times[e.to]=times[id]+this.duration(e,profile);prev[e.to]=id;edges[e.to]=e;q.push([n,e.to]);}}}
+  const r={times,costs,prev,edges,root:snap.id,reverse};if(this.cache.size>80)this.cache.delete(this.cache.keys().next().value);this.cache.set(key,r);return r;
+ }
+ trace(tree,target){if(!tree||!Number.isFinite(tree.times[target])||tree.reverse)return null;const edges=[];for(let i=target;i!==tree.root;i=tree.prev[i]){if(!tree.edges[i])return null;edges.push(tree.edges[i]);}return edges.reverse();}
+ assemble(from,to,a,b,edges,profile){
+  const ids=[a.id,...edges.map(e=>e.to)],connectorMeters=a.d+b.d,connectorMinutes=connectorMeters/75;
+  const metrics=sumMetrics(edges.map(e=>this.metrics(e)));
+  metrics.unknownCoverMeters+=connectorMeters;metrics.unknownCoverMinutes+=connectorMinutes;metrics.unknownSlopeMeters+=connectorMeters;
+  const minutes=edges.reduce((n,e)=>n+this.duration(e,profile),connectorMinutes);
+  return {kind:'walk',source:this.source,profile,...metrics,steps:metrics.stairs,minutes,preferenceCost:minutes+preferencePenalty(metrics,profile,this.sunFactor),meters:edges.reduce((n,e)=>n+e.d,connectorMeters),nodeIds:ids,edgeKeys:edges.map(e=>`${this.ways[e.w].id}:${e.from}:${e.to}`),geometry:ids.map(id=>this.nodes[id]),connectors:[[from,this.nodes[a.id]],[this.nodes[b.id],to]],connectorMeters,
+   segments:edges.map(e=>{const t=this.ways[e.w].tags;return {meters:e.d,name:t['name:zh']||t.name||'',stairs:t.highway==='steps'&&!t.conveying,escalator:!!t.conveying,shortcut:t.shortcut,kind:t.highway,cover:coverType(t),ascent:this.metrics(e).ascent,fromLevel:e.dir===1?t.fromLevel:t.toLevel,toLevel:e.dir===1?t.toLevel:t.fromLevel};})};
+ }
+ route(from,to,profile='fast',tree=null){const a=this.snap(from),b=this.snap(to);if(!a||!b)return null;const edges=this.trace(tree||this.tree(a,profile),b.id);return edges?this.assemble(from,to,a,b,edges,profile):null;}
+ elevatorAlternatives(from,to,profile='comfort'){
+  const a=this.snap(from),b=this.snap(to);if(!a||!b||!this.shortcuts)return [];
+  const start=this.tree(a,profile),routes=[];
+  for(let w=0;w<this.ways.length;w++){
+   const way=this.ways[w];if(way.tags.highway!=='elevator')continue;
+   for(const id of way.nodes)for(const e of this.adj[id].filter(e=>e.w===w)){
+    if(!Number.isFinite(this.weight(e,profile)))continue;
+    const before=this.trace(start,id),after=this.trace(this.tree({id:e.to},profile),b.id);if(!before||!after)continue;
+    const edges=[...before,e,...after],ids=[a.id,...edges.map(e=>e.to)];
+    // Do not recommend a detour that walks past the destination or rides a lift in a loop.
+    if(new Set(ids).size!==ids.length)continue;
+    routes.push({...this.assemble(from,to,a,b,edges,profile),viaElevator:way.tags.name});
+   }
+  }
+  return routes;
  }
 }
 export function hongKongParts(date=new Date()){

@@ -1,0 +1,18 @@
+import {chromium,expect} from '@playwright/test';import fs from 'node:fs';
+const url=process.env.SITE_URL||'http://127.0.0.1:4173/cuhk-wayfinder/',out=process.env.SCREENSHOT_DIR||'/tmp/cuhk-comfort-check';fs.mkdirSync(out,{recursive:true});
+const browser=await chromium.launch(),context=await browser.newContext({viewport:{width:1440,height:1000}}),page=await context.newPage(),errors=[],httpErrors=[];page.setDefaultTimeout(15000);page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.status()>=400)httpErrors.push(r.url())});
+try{
+ await page.goto(url,{waitUntil:'networkidle'});await page.locator('.topnav [data-tab="plan"]').click();
+ await page.locator('#origin').fill('大学站西');await page.locator('#origin-results [data-pick]').first().click();await page.locator('#destination').fill('大學圖書館');await page.locator('#destination-results [data-pick]').first().click();
+ await page.locator('#departure').fill('2026-10-04T12:00');await page.locator('#departure').press('Tab');await page.locator('#lift-wait').evaluate(el=>el.closest('details').open=true);await page.locator('#lift-wait').selectOption('5');
+ await page.locator('#calculate').click();await expect(page.locator('.route-card').first()).toBeVisible();const cards=page.locator('.route-card');
+ for(const label of ['避晒优先','少爬坡优先','电梯备选','H 号线'])await expect(cards.filter({hasText:label}).first()).toBeAttached();
+ await expect(cards.first()).toContainText('舒适偏好优先');await expect(cards.first()).toContainText('有盖');await expect(cards.first()).toContainText('遮蔽未知');
+ await cards.filter({hasText:'电梯备选'}).first().click();await expect(page.locator('.steps')).toContainText('等候 5 分钟');await expect(page.locator('.map-error')).toHaveCount(0);await page.screenshot({path:out+'/comfort-desktop.png'});
+ const before=await cards.count();await page.locator('#preference').selectOption('fast');await page.locator('#calculate').click();await expect(cards.first()).toContainText('预计耗时优先');expect(await cards.count()).toEqual(before);
+ const mins=await cards.locator('.route-card-head strong').allTextContents();expect(mins.map(x=>parseInt(x))).toEqual(mins.map(x=>parseInt(x)).sort((a,b)=>a-b));
+ await page.setViewportSize({width:390,height:844});await cards.filter({hasText:'三维行人路网'}).first().click();await page.screenshot({path:out+'/comfort-mobile.png'});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();await page.locator('#route-map').click();await page.waitForTimeout(700);await page.screenshot({path:out+'/comfort-map.png'});
+ await page.locator('.mobile-switch [data-tab="plan"]').click();await page.locator('#departure').fill('2026-10-02T20:00');await page.locator('#departure').press('Tab');await page.locator('#calculate').click();await expect(cards.filter({hasText:'N 号线'}).first()).toBeAttached();await expect(page.locator('#route-results')).toContainText('夜间，不增加日晒权重');
+ await page.waitForFunction(()=>navigator.serviceWorker.controller);await context.setOffline(true);await page.reload({waitUntil:'networkidle'});await page.locator('.mobile-switch [data-tab="plan"]').click();await page.locator('#destination').fill('大學圖書館');await page.locator('#destination-results [data-pick]').first().click();await page.locator('#calculate').click();await expect(cards.filter({hasText:'避晒优先'}).first()).toBeAttached();await expect(page.locator('.map-error')).toHaveCount(0);
+ expect(errors).toEqual([]);expect(httpErrors).toEqual([]);console.log(JSON.stringify({url,alternatives:before,slowerLiftWithFiveMinuteWait:true,shadeAndGentle:true,sortKeepsAllOptions:true,holidayHAndNightN:true,mobileNoOverflow:true,offlineComfort:true,errors,httpErrors},null,2));
+}finally{await browser.close();}

@@ -21,7 +21,9 @@ for f in raw['features']:
   if a['Direction']:tags['oneway:foot']='yes' if a['Direction']==1 else '-1'
   if a['WheelchairBarrier']==1:tags['wheelchair']='no'
   if a['Location']==2:tags['shortcut']='lands-indoor'
-  if a['WeatherProof']==1:tags['covered']='yes'
+  if a['WeatherProof'] in [1,2]:tags['covered']='yes' if a['WeatherProof']==1 else 'no'
+  if a['Location']==2:tags['indoor']='yes'
+  if kind in [8,16]:tags['conveying']='yes'
   for j in range(1,len(ns)):
    p,q=nodes[ns[j-1]],nodes[ns[j]];d=math.hypot((q[0]-p[0])*111195,(q[1]-p[1])*102800);rise=q[2]-p[2]
    t={**tags,'incline':round(rise/max(d,.1)*100,2),'rise':round(rise,2)}

@@ -256,13 +256,13 @@
     },
     {
       "file": "public/data/graph.json",
-      "bytes": 547878,
-      "sha256": "9b18d3cedaf8603f79ea2d7abbf7b269ad71a8b961034270a68d0263d26a9adf"
+      "bytes": 597308,
+      "sha256": "5071d1540ccba5e29a0767cec5e6dfa216b03f37deedff13967e274658e283b8"
     },
     {
       "file": "public/data/lands-graph.json",
-      "bytes": 2123922,
-      "sha256": "b5fa2b67b7139f7d3f7e068badfedd56a115b80b67ec80997acb45edb0b95c76"
+      "bytes": 2276388,
+      "sha256": "7b5e1e092bfa4c75b88c8c53ac6c1b4f2c7106a8d470fe11e516aa7d3e6beee2"
     },
     {
       "file": "public/data/places.json",
@@ -329,5 +329,11 @@
       "bytes": 4120,
       "sha256": "3eb531677e6df480bd08afe10732e84da55dfb97320e2ce80c3adc0eb1e6e0d8"
     }
-  ]
+  ],
+  "comfortProcessing": {
+    "date": "2026-10-01",
+    "cover": "OSM covered/indoor and LandsD WeatherProof=1/2; unknown retained",
+    "outdoorSlope": "bilinear interpolation of zoom-12 Terrarium; coarse 35m pixels; excludes shortcuts bridges tunnels and non-ground floors",
+    "solar": "SunCalc 1.9.0; departure-time altitude; no weather or real-time shadows"
+  }
 }
