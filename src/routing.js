@@ -7,7 +7,7 @@ export class Heap{
 export class WalkGraph {
  constructor(data,{shortcuts=true,elevatorWait=1.5,avoidSteps=false,sunFactor=1}={}) {
   this.source=data.source;this.shortcuts=shortcuts;this.elevatorWait=elevatorWait;this.avoidSteps=avoidSteps;this.sunFactor=sunFactor;
-  this.nodes=data.nodes;this.ways=data.ways;this.adj=this.nodes.map(()=>[]);this.rev=this.nodes.map(()=>[]);this.cache=new Map();
+  this.nodes=data.nodes;this.nodeIds=data.nodeIds;this.ways=data.ways;this.adj=this.nodes.map(()=>[]);this.rev=this.nodes.map(()=>[]);this.cache=new Map();
   for(let w=0;w<this.ways.length;w++){
    const way=this.ways[w],t=way.tags;if(t.shortcut&&!shortcuts)continue;
    for(let i=1;i<way.nodes.length;i++){
@@ -25,7 +25,10 @@ export class WalkGraph {
   for(let i=0;i<this.nodes.length;i++){if(seen.has(i))continue;const todo=[i],component=[];seen.add(i);while(todo.length){const n=todo.pop();component.push(n);for(const e of [...this.adj[n],...this.rev[n]])if(!seen.has(e.to)){seen.add(e.to);todo.push(e.to);}}components.push(component);}
   components.sort((a,b)=>b.length-a.length);this.snapNodes=components[0]?.length>100?components[0]:this.nodes.map((_,i)=>i);
  }
- snap(coord){let d=Infinity,id=-1;for(const i of this.snapNodes){if(this.adj[i].some(e=>this.ways[e.w].tags.highway==='elevator'))continue;const x=distance(coord,this.nodes[i]);if(x<d){id=i;d=x;}}return d<=120?{id,d,coord}:null;}
+ snap(coord){
+  if(coord.osmNodeId){const id=this.nodeIds?.indexOf(coord.osmNodeId);return id>=0&&this.adj[id].length?{id,d:distance(coord,this.nodes[id]),coord}:null;}
+  let d=Infinity,id=-1;for(const i of this.snapNodes){if(this.adj[i].some(e=>this.ways[e.w].tags.highway==='elevator'))continue;const x=distance(coord,this.nodes[i]);if(x<d){id=i;d=x;}}return d<=120?{id,d,coord}:null;
+ }
  duration(e,profile='fast'){
   const t=this.ways[e.w].tags;
   if(t.shortcut&&!this.shortcuts||(profile==='no-steps'||this.avoidSteps)&&(t.highway==='steps'||t.wheelchair==='no'))return Infinity;
@@ -61,7 +64,7 @@ export class WalkGraph {
   metrics.unknownCoverMeters+=connectorMeters;metrics.unknownCoverMinutes+=connectorMinutes;metrics.unknownSlopeMeters+=connectorMeters;
   const minutes=edges.reduce((n,e)=>n+this.duration(e,profile),connectorMinutes);
   return {kind:'walk',source:this.source,profile,...metrics,steps:metrics.stairs,minutes,preferenceCost:minutes+preferencePenalty(metrics,profile,this.sunFactor),meters:edges.reduce((n,e)=>n+e.d,connectorMeters),nodeIds:ids,edgeKeys:edges.map(e=>`${this.ways[e.w].id}:${e.from}:${e.to}`),geometry:ids.map(id=>this.nodes[id]),connectors:[[from,this.nodes[a.id]],[this.nodes[b.id],to]],connectorMeters,
-   segments:edges.map(e=>{const t=this.ways[e.w].tags;return {meters:e.d,name:t['name:zh']||t.name||'',stairs:t.highway==='steps'&&!t.conveying,escalator:!!t.conveying,shortcut:t.shortcut,kind:t.highway,cover:coverType(t),ascent:this.metrics(e).ascent,fromLevel:e.dir===1?t.fromLevel:t.toLevel,toLevel:e.dir===1?t.toLevel:t.fromLevel};})};
+   segments:edges.map(e=>{const t=this.ways[e.w].tags;return {meters:e.d,name:t['name:zh']||t.name||'',stairs:t.highway==='steps'&&!t.conveying,escalator:!!t.conveying,shortcut:t.shortcut,connection:t.connection,level:t.level,kind:t.highway,cover:coverType(t),ascent:this.metrics(e).ascent,fromLevel:e.dir===1?t.fromLevel:t.toLevel,toLevel:e.dir===1?t.toLevel:t.fromLevel};})};
  }
  route(from,to,profile='fast',tree=null){const a=this.snap(from),b=this.snap(to);if(!a||!b)return null;const edges=this.trace(tree||this.tree(a,profile),b.id);return edges?this.assemble(from,to,a,b,edges,profile):null;}
  elevatorAlternatives(from,to,profile='comfort'){

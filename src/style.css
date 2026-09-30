@@ -9,3 +9,6 @@
 @media(max-width:760px){.landsd-credit{bottom:114px;left:12px;width:26px;height:26px}}
 
 .comfort-stats{display:grid;grid-template-columns:1fr 1fr;gap:7px;font-size:11px;color:#4d685c;padding:10px 0;border-top:1px solid #e2e8dc}.route-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}.route-tags span{background:#edf2e8;color:#315445;padding:3px 6px;border-radius:4px;font-size:10px}.route-card .day-note{font-size:11px;margin:5px 0 10px}.route-card h3{max-width:75%;overflow-wrap:anywhere}
+
+.campus-popup{font-family:inherit;color:#243b31;padding:5px 3px;max-height:320px;overflow:auto}.campus-popup h3{font-size:16px;line-height:1.5;margin:0 18px 8px 0}.campus-popup p{font-size:12px;line-height:1.65;margin:7px 0}.campus-popup button{font-size:12px;white-space:normal;text-align:left}.maplibregl-popup-close-button{font-size:23px;min-width:30px;min-height:30px}.arrival-label{font-weight:600;color:#20674f}
+.maplibregl-popup{z-index:9}.campus-popup .subtle-btn{display:flex;width:100%;margin-top:6px;justify-content:flex-start}

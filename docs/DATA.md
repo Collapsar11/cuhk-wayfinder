@@ -36,7 +36,9 @@ python3 scripts/build-lands.py /Volumes/H/cuhk-wayfinder/raw/lands-campus-networ
 npm test
 ```
 
-`data:build` 按顺序运行地点、OSM 图、跨层近路、校巴编译。重复执行前会重新从 OSM 源构造图，不会叠加电梯。脚本仅重建既有人工审核过的规则，不会自动确认新校巴表、施工公告或近路状态。
+`data:build` 按顺序运行地点、OSM 图、跨层近路、连廊与楼梯、地形高程、校巴编译。重复执行前会重新从 OSM 源构造图，不会叠加电梯。脚本仅重建既有人工审核过的规则，不会自动确认新校巴表、施工公告或近路状态。
+
+本次连接与楼梯扩充、ERB 电梯楼层修正及建筑名称匹配规则见 [CONNECTIONS.md](CONNECTIONS.md)。`node scripts/verify-engineering.mjs` 验证指定校巴路线、SHB 5 楼入口、建筑轮廓点击及离线规划；`SITE_URL` 可指定部署网站。
 
 更新时先建立新的原始资料快照目录，把 `data/raw` 指向它。`npm run data:fetch` 下载官方网页与 JSON 等公开源，另用 `scripts/fetch-lands.py` 完整分页下载三维路网；不要把新增数据未经核对就覆盖已确认的时刻表规则。地形缓存是小范围固定快照，无须每次重复下载。
 

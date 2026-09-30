@@ -10,7 +10,15 @@ for(const s of definitions){
  s.source=source;s.hours='开放时间与门禁未核实';s.coordinateAccuracy='OSM 电梯节点；入口和楼层连接依据官方近路指南，未现场测量';s.waitMinutes=1.5;s.rideMinutes=s.floorRise*.06;s.retrievedAt='2026-10-01';
  const old=g.nodeIds.indexOf(s.node);if(old<0)throw Error(s.node);const upper=g.nodes.length;g.nodes.push(g.nodes[old]);g.nodeIds.push(s.node+':'+s.high);
  if(s.splitWay){const idx=g.ways.findIndex(w=>w.id===s.splitWay);const w=g.ways[idx],at=w.nodes.indexOf(old);if(at<1)throw Error(s.id);g.ways.splice(idx,1,{...w,id:w.id+'-high',nodes:[...w.nodes.slice(0,at),upper],tags:{...w.tags,shortcut:s.id,level:s.high}},{...w,id:w.id+'-low',nodes:w.nodes.slice(at),tags:{...w.tags,shortcut:s.id,level:s.low}});}
- else {const upperWay=g.ways.find(w=>w.id===s.upperWay),lowerWay=g.ways.find(w=>w.id===s.lowerWay);upperWay.nodes=upperWay.nodes.map(n=>n===old?upper:n);upperWay.tags={...upperWay.tags,shortcut:s.id,level:s.high};lowerWay.tags={...lowerWay.tags,shortcut:s.id,level:s.low};}
+ else {
+  const upperWay=g.ways.find(w=>w.id===s.upperWay),idx=g.ways.findIndex(w=>w.id===s.lowerWay),w=g.ways[idx],at=w.nodes.indexOf(old);
+  upperWay.nodes=upperWay.nodes.map(n=>n===old?upper:n);upperWay.tags={...upperWay.tags,shortcut:s.id,level:s.high};
+  // The west bridge reaches ERB 9/F; the east Nursery Path door reaches G/F.
+  // OSM's single way spans both levels. Crossing floors must traverse the lift edge.
+  if(at<1||at===w.nodes.length-1)throw Error('ERB lift split missing');
+  g.ways.splice(idx,1,{...w,id:w.id+'-high',nodes:[...w.nodes.slice(0,at),upper],tags:{...w.tags,shortcut:s.id,level:s.high}},
+    {...w,id:w.id+'-low',nodes:w.nodes.slice(at),tags:{...w.tags,shortcut:s.id,level:s.low}});
+ }
  g.ways.push({id:'lift-'+s.id,nodes:[old,upper],tags:{highway:'elevator',covered:'yes',indoor:'yes',shortcut:s.id,name:s.name+'电梯',fromLevel:s.low,toLevel:s.high,fixedMinutes:s.waitMinutes+s.rideMinutes}});
 }
 // Explicit escalators and footbridge already connected in OSM; use direction, don't model as bidirectional stairs.

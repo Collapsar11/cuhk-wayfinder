@@ -8,7 +8,7 @@
     "build": "vite build && node scripts/build-sw.mjs",
     "preview": "vite preview --host 0.0.0.0",
     "test": "node --test tests/*.test.js",
-    "data:build": "node scripts/build-data.mjs && python3 scripts/build-geo.py && node scripts/build-shortcuts.mjs && python3 scripts/build-terrain-heights.py && node scripts/build-transit.mjs",
+    "data:build": "node scripts/build-data.mjs && python3 scripts/build-geo.py && node scripts/build-shortcuts.mjs && node scripts/build-connections.mjs && python3 scripts/build-terrain-heights.py && node scripts/build-transit.mjs",
     "data:fetch": "python3 scripts/fetch_sources.py",
     "test:browser": "node scripts/browser-check.mjs",
     "deploy": "bash scripts/deploy-pages.sh",

@@ -246,8 +246,8 @@
   "runtimeFiles": [
     {
       "file": "public/data/basemap.json",
-      "bytes": 1486350,
-      "sha256": "efd4afa47254290675cbe996d10146d1f5e02c86d9025a4e505def6b9bf5b0da"
+      "bytes": 1705434,
+      "sha256": "2e364dceeffb512da3b6979677bd39e067e0f8b9c9778be119aa112ced0c7b8a"
     },
     {
       "file": "public/data/food-calendar.json",
@@ -256,8 +256,8 @@
     },
     {
       "file": "public/data/graph.json",
-      "bytes": 597308,
-      "sha256": "5071d1540ccba5e29a0767cec5e6dfa216b03f37deedff13967e274658e283b8"
+      "bytes": 598639,
+      "sha256": "90bcb3bd00ab8bed76c4e2f7d85cb5b48fe381a35cb481ef94f02d2d0478ba19"
     },
     {
       "file": "public/data/lands-graph.json",
@@ -266,13 +266,13 @@
     },
     {
       "file": "public/data/places.json",
-      "bytes": 230210,
-      "sha256": "11abf084bca62ba215a570c4474b6e288a26ec48a2ff5ff12bf4644ad6afbc09"
+      "bytes": 230908,
+      "sha256": "9dbc96b75cb46022ce61a19da98c3fd86b47201bbd4f619f5eb7a11dcece5692"
     },
     {
       "file": "public/data/shortcuts.json",
-      "bytes": 2537,
-      "sha256": "9f4a183d9222b50530f017f0bef10ae6994a27558f9874f860a12d5f4b48944d"
+      "bytes": 7280,
+      "sha256": "06e8233dacfdc50f5e4b6dcdc32fdcb2b45d7c9c514d02e2e4b62f47051ff3c0"
     },
     {
       "file": "public/data/stops.json",
@@ -335,5 +335,31 @@
     "cover": "OSM covered/indoor and LandsD WeatherProof=1/2; unknown retained",
     "outdoorSlope": "bilinear interpolation of zoom-12 Terrarium; coarse 35m pixels; excludes shortcuts bridges tunnels and non-ground floors",
     "solar": "SunCalc 1.9.0; departure-time altitude; no weather or real-time shadows"
+  },
+  "connectionEvidence": {
+    "checkedAt": "2026-10-01",
+    "floorSources": [
+      "https://www.math.cuhk.edu.hk/about-us/maps-directions",
+      "https://www.cse.cuhk.edu.hk/about/visiting-us/"
+    ],
+    "bridgeWayIds": [
+      "136995432",
+      "188010215",
+      "1548082087",
+      "136995433"
+    ],
+    "entranceNode": "2389077301",
+    "stairsWayIds": [
+      "217711451",
+      "217711476",
+      "217711478",
+      "218424332",
+      "1379216539",
+      "1379216538",
+      "191766973"
+    ],
+    "excludedConstructionWay": "1116933334",
+    "floorCorrection": "1492178658 split at ERB lift: west SHB bridge 9/F; east Nursery Path G/F",
+    "details": "docs/CONNECTIONS.md"
   }
 }
