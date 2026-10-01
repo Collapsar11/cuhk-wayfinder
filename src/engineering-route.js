@@ -23,7 +23,7 @@ export function engineeringBus(graph,data,stops,from,to,{date,member=true,teachi
   best={kind:'transit',minutes,arrival:day.minute+minutes,arrivalLabel:engineeringArrival,arrivalCoords:[...to],guide:'pgh-shb',source:engineeringSource,
    meters:access.meters+egress.meters,walkingMinutes:access.minutes+egress.minutes,
    legs:[{...access,fromName:'起点',toName:board.name},
-    {kind:'bus',route:trip.route,name:trip.name,source:trip.source,fromName:board.name,toName:alight.name,stops:ids,departure:trip.times[i],arrival:trip.times[j],wait:trip.times[i]-ready,minutes:trip.times[j]-trip.times[i],geometry:ids.map(id=>stops.find(s=>s.id===id).coords)},
+    {kind:'bus',route:trip.route,variantId:trip.variantId,variantLabel:trip.variantLabel,variantDetail:trip.variantDetail,name:trip.name,source:trip.source,fromName:board.name,toName:alight.name,stops:ids,departure:trip.times[i],arrival:trip.times[j],wait:trip.times[i]-ready,minutes:trip.times[j]-trip.times[i],geometry:ids.map(id=>stops.find(s=>s.id===id).coords)},
     {...egress,fromName:alight.name,toName:engineeringArrival,arrivalLabel:engineeringArrival}]
   };
  }

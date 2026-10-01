@@ -5,8 +5,8 @@ try {
  await page.goto(url,{waitUntil:'networkidle'});await page.locator('.mobile-switch [data-tab="bus"]').click();
  await expect(page.locator('[data-bus-filter="H"]')).toBeVisible();await expect(page.locator('[data-bus-filter="N"]')).toBeVisible();
  await page.locator('[data-bus-filter="H"]').click();await page.locator('#bus-date').fill('2026-10-04T10:00');await page.locator('#bus-date').press('Tab');
- await expect(page.locator('.bus-card')).toHaveCount(1);await expect(page.locator('[data-bus-line="H"] .bus-status')).toContainText('10:00 / 10:20 / 10:40');
- await page.locator('[data-bus-filter="N"]').click();await expect(page.locator('.bus-status')).toContainText('所选日期不提供此线服务');
+ await expect(page.locator('.bus-card')).toHaveCount(2);await expect(page.locator('[data-bus-variant="H-area39"] .bus-status')).toContainText('10:00 / 11:00 / 12:00');await expect(page.locator('[data-bus-variant="H-regular"] .bus-status')).toContainText('10:20 / 10:40 / 11:20');
+ await page.locator('[data-bus-filter="N"]').click();await expect(page.locator('.bus-status')).toContainText('所选日期不提供此类班次');
  await page.locator('#bus-date').fill('2026-10-02T20:00');await page.locator('#bus-date').press('Tab');await expect(page.locator('.bus-status')).toContainText('20:00 / 20:15 / 20:30');
  await page.locator('#bus-plan').click();await page.locator('#origin').fill('大学站西');await page.locator('#origin-results [data-pick]').first().click();await page.locator('#destination').fill('錢穆圖書館');await page.locator('#destination-results [data-pick]').first().click();
  for(const [date,line] of [['2026-10-02T20:00','N'],['2026-10-04T10:00','H']]){

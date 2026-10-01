@@ -12,3 +12,5 @@
 
 .campus-popup{font-family:inherit;color:#243b31;padding:5px 3px;max-height:320px;overflow:auto}.campus-popup h3{font-size:16px;line-height:1.5;margin:0 18px 8px 0}.campus-popup p{font-size:12px;line-height:1.65;margin:7px 0}.campus-popup button{font-size:12px;white-space:normal;text-align:left}.maplibregl-popup-close-button{font-size:23px;min-width:30px;min-height:30px}.arrival-label{font-weight:600;color:#20674f}
 .maplibregl-popup{z-index:9}.campus-popup .subtle-btn{display:flex;width:100%;margin-top:6px;justify-content:flex-start}
+
+.stop-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}.stop-list button{justify-content:flex-start;text-align:left;white-space:normal}.bus-card h3{overflow-wrap:anywhere}

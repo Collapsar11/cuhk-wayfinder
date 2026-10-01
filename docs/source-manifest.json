@@ -241,6 +241,24 @@
       "recordCount": 4469,
       "sha256": "97d36ff7c690e302bed3403773764f92b69c0b1e2f8837657df7c2d02d759b5a",
       "archive": "raw/lands-campus-network.json"
+    },
+    {
+      "file": "circuit-east-up-relocation.jpg",
+      "url": "https://transport.cuhk.edu.hk/wp-content/uploads/news/Service_Information/TSP_ISI_2026_23_%E7%92%B0%E8%BF%B4%E6%9D%B1%E7%AB%99%E4%B8%8A%E8%A1%8C%E8%87%A8%E6%99%82%E9%81%B7%E7%A7%BB-scaled.jpg",
+      "archive": "raw/circuit-east-up-relocation.jpg",
+      "retrievedAt": "2026-10-01",
+      "bytes": 357564,
+      "sha256": "97c82a9fe0087bd2d7276320fbdc48fad5f3663004213cde1170376277a143c8",
+      "status": "ok"
+    },
+    {
+      "file": "circuit-east-down-relocation.jpg",
+      "url": "https://transport.cuhk.edu.hk/wp-content/uploads/news/Service_Information/TSP_ISI_2026_22_%E9%87%8D%E8%A6%81%E8%BB%8A%E5%8B%99%E8%B3%87%E8%A8%8A_%E7%92%B0%E8%BF%B4%E6%9D%B1%E7%AB%99%E8%87%A8%E6%99%82%E9%81%B7%E7%A7%BB.jpg",
+      "archive": "raw/circuit-east-down-relocation.jpg",
+      "retrievedAt": "2026-10-01",
+      "bytes": 239489,
+      "sha256": "8688943fd173c3050c89f6016242fa76e9acafff33aa5142beaf74b9e95444ce",
+      "status": "ok"
     }
   ],
   "runtimeFiles": [
@@ -266,8 +284,8 @@
     },
     {
       "file": "public/data/places.json",
-      "bytes": 230908,
-      "sha256": "9dbc96b75cb46022ce61a19da98c3fd86b47201bbd4f619f5eb7a11dcece5692"
+      "bytes": 245418,
+      "sha256": "6ff5186eaf66aa8e641162eb098abfc5a4c69f887a25a9d0c8835fa7a48c446d"
     },
     {
       "file": "public/data/shortcuts.json",
@@ -326,8 +344,8 @@
     },
     {
       "file": "public/data/transit.json",
-      "bytes": 4120,
-      "sha256": "3eb531677e6df480bd08afe10732e84da55dfb97320e2ce80c3adc0eb1e6e0d8"
+      "bytes": 11420,
+      "sha256": "f9d1bfabfb7817e848d41dad71786a65cb14d487d4b968b22aa187f865f0add6"
     }
   ],
   "comfortProcessing": {
@@ -361,5 +379,13 @@
     "excludedConstructionWay": "1116933334",
     "floorCorrection": "1492178658 split at ERB lift: west SHB bridge 9/F; east Nursery Path G/F",
     "details": "docs/CONNECTIONS.md"
+  },
+  "transitVariants": {
+    "checkedAt": "2026-10-01",
+    "routeNumbers": 12,
+    "serviceVariants": 18,
+    "searchableStops": 29,
+    "relocationCoordinates": "Approximate interpretation of official diagrams, not surveyed",
+    "details": "docs/TRANSIT_VARIANTS.md"
   }
 }

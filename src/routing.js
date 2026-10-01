@@ -1,4 +1,6 @@
 import {blankMetrics,sumMetrics,coverType,preferencePenalty} from './comfort.js';
+import {resolveStops,stopNotes} from './transit-stops.js';
+import {serviceVariants,variantApplies} from './transit-variants.js';
 export const distance=(a,b)=>{const rad=Math.PI/180,lat=(a[0]+b[0])/2*rad;return Math.hypot((a[0]-b[0])*rad,(a[1]-b[1])*rad*Math.cos(lat))*6371000;};
 export class Heap{
  constructor(){this.a=[];}push(v){let i=this.a.length;this.a.push(v);while(i){let p=(i-1)>>1;if(this.a[p][0]<=v[0])break;this.a[i]=this.a[p];i=p;}this.a[i]=v;}
@@ -98,26 +100,27 @@ export function serviceDay(data,date,override='auto'){
 }
 export function createTrips(data,stops,date,override='auto'){
  const day=serviceDay(data,date,override);if(!day.known)return [];
+ stops=resolveStops(data,stops,day);
  const byId=Object.fromEntries(stops.map(s=>[s.id,s]));const trips=[];
- for(const r of data.routes){
-  if(r.days==='holiday'&&!day.holiday||r.days!=='holiday'&&day.holiday||r.days==='teaching'&&!day.teaching||r.noSaturday&&day.weekday===6)continue;
-  const end=minutes(day.weekday===6&&r.saturdayEnd?r.saturdayEnd:r.end),start=minutes(r.start);
+ for(const r of data.variants||serviceVariants(data.routes)){
+  if(!variantApplies(r,day))continue;
+  const end=minutes(r.end),start=minutes(r.start);
   for(let departure=start;departure<=end;departure++){
    if(!r.mins.includes(departure%60))continue;
    let ids=r.stops.filter(id=>!r.conditional?.[id]||r.conditional[id]==='minute00'&&departure%60===0||r.conditional[id]==='minute45'&&departure%60===45);
-   if(r.nonTeachingEnd&&!day.teaching)ids=[...ids.slice(0,-1),...r.nonTeachingEnd];
+   ids=ids.filter(id=>byId[id]);
    const times=[departure];for(let i=1;i<ids.length;i++)times.push(times[i-1]+Math.max(.8,distance(byId[ids[i-1]].coords,byId[ids[i]].coords)*1.35/250+.35));
-   trips.push({route:r.id,name:r.name,source:r.source,ids,times,departure});
+   trips.push({route:r.route,variantId:r.id,variantLabel:r.label,variantDetail:r.detail,name:r.name,source:r.source,ids,times,departure});
   }
  }
- return trips;
+ return trips.sort((a,b)=>a.departure-b.departure||a.route.localeCompare(b.route));
 }
 export function planTransit(graph,data,stops,from,to,{date=new Date(),profile='fast',member=true,teaching='auto'}={}){
  const walk=graph.route(from,to,profile);if(!member)return {walk,transit:null,reason:'visitor'};
  const day=serviceDay(data,date,teaching);if(!day.known)return {walk,transit:null,reason:'calendar'};
- const trips=createTrips(data,stops,date,teaching);const a=graph.snap(from),b=graph.snap(to);if(!a||!b)return {walk,transit:null,reason:'coverage'};
+ const trips=createTrips(data,stops,date,teaching);stops=resolveStops(data,stops,day);const a=graph.snap(from),b=graph.snap(to);if(!a||!b)return {walk,transit:null,reason:'coverage'};
  const originTree=graph.tree(a,profile),destTree=graph.tree(b,profile,true);
- const blocked=new Set(data.alerts.flatMap(a=>a.stops));const use=stops.filter(s=>!blocked.has(s.id)).map(s=>({...s,snap:graph.snap(s.coords)})).filter(s=>s.snap);
+ const use=stops.map(s=>({...s,snap:graph.snap(s.coords)})).filter(s=>s.snap);
  const index=new Map(use.map((s,i)=>[s.id,i])),nStops=use.length;
  // Distinct states preserve bus alternatives even when walking is earlier:
  // 0 = origin access; 1 = just alighted; 2 = one walking transfer after alighting.
@@ -146,9 +149,37 @@ export function planTransit(graph,data,stops,from,to,{date=new Date(),profile='f
  let count=0;
  while(stateId>=0&&count++<nStops*3+1){const e=prev[stateId];if(!e)break;const i=stateId%nStops,fromStop=e.from<0?null:use[e.from%nStops];
   if(e.kind==='walk'){const r=graph.route(fromStop?fromStop.coords:from,use[i].coords,profile);if(!r)return {walk,transit:null,reason:'coverage'};legs.push({...r,fromName:fromStop?fromStop.name:'起点',toName:use[i].name});}
-  else {const seq=e.trip.ids.slice(e.start,e.end+1);legs.push({...e,route:e.trip.route,name:e.trip.name,source:e.trip.source,departure:e.trip.times[e.start],arrival:e.trip.times[e.end],fromName:fromStop.name,toName:use[i].name,stops:seq,geometry:seq.map(id=>stops.find(s=>s.id===id).coords)});}
+  else {const seq=e.trip.ids.slice(e.start,e.end+1);legs.push({...e,notices:stopNotes(fromStop,use[i]),route:e.trip.route,variantId:e.trip.variantId,variantLabel:e.trip.variantLabel,variantDetail:e.trip.variantDetail,name:e.trip.name,source:e.trip.source,departure:e.trip.times[e.start],arrival:e.trip.times[e.end],fromName:fromStop.name,toName:use[i].name,stops:seq,geometry:seq.map(id=>stops.find(s=>s.id===id).coords)});}
   stateId=e.from;
  }
  legs.reverse();
  return {walk,transit:{kind:'transit',minutes:best-day.minute,arrival:best,legs,walkingMinutes:legs.filter(x=>x.kind==='walk').reduce((n,l)=>n+l.minutes,0),meters:legs.filter(x=>x.kind==='walk').reduce((n,l)=>n+l.meters,0)},reason:null};
+}
+
+// Keep a feasible direct ride for each service variant, even if another bus is earlier.
+export function directTransitAlternatives(graph,data,stops,from,to,{date=new Date(),profile='fast',member=true,teaching='auto'}={}){
+ if(!member)return [];
+ const day=serviceDay(data,date,teaching);if(!day.known)return [];
+ const trips=createTrips(data,stops,date,teaching),resolved=resolveStops(data,stops,day),byId=new Map(resolved.map(s=>[s.id,s]));
+ const access=new Map(),egress=new Map(),best=new Map();
+ for(const s of resolved){
+  const a=graph.route(from,s.coords,profile),b=graph.route(s.coords,to,profile);
+  if(a&&a.minutes<=12)access.set(s.id,a);if(b&&b.minutes<=12)egress.set(s.id,b);
+ }
+ for(const trip of trips)for(let i=0;i<trip.ids.length-1;i++){
+  const first=access.get(trip.ids[i]);if(!first)continue;
+  const ready=day.minute+first.minutes,wait=trip.times[i]-ready;if(wait<1.5||wait>90)continue;
+  for(let j=i+1;j<trip.ids.length;j++){
+   const last=egress.get(trip.ids[j]);if(!last||trip.ids[i]===trip.ids[j])continue;
+   const arrival=trip.times[j]+last.minutes,minutes=arrival-day.minute;
+   const previous=best.get(trip.variantId),walking=first.minutes+last.minutes;
+   if(minutes>180||previous&&(previous.minutes<minutes-.001||Math.abs(previous.minutes-minutes)<.001&&previous.walkingMinutes<=walking))continue;
+   const board=byId.get(trip.ids[i]),alight=byId.get(trip.ids[j]),ids=trip.ids.slice(i,j+1);
+   best.set(trip.variantId,{kind:'transit',minutes,arrival,meters:first.meters+last.meters,walkingMinutes:first.minutes+last.minutes,
+    legs:[{...first,fromName:'起点',toName:board.name},
+     {kind:'bus',route:trip.route,variantId:trip.variantId,variantLabel:trip.variantLabel,variantDetail:trip.variantDetail,source:trip.source,fromName:board.name,toName:alight.name,stops:ids,departure:trip.times[i],arrival:trip.times[j],wait,minutes:trip.times[j]-trip.times[i],geometry:ids.map(id=>byId.get(id).coords),notices:stopNotes(board,alight)},
+     {...last,fromName:alight.name,toName:'目的地'}]});
+  }
+ }
+ return [...best.values()];
 }

@@ -1,9 +1,13 @@
-import {WalkGraph,planTransit} from './routing.js';
+import {WalkGraph,planTransit,directTransitAlternatives,hongKongParts} from './routing.js';
+import {resolveStops} from './transit-stops.js';
 import {sunContext,sumMetrics,routePreferenceScore} from './comfort.js';
 import {shbEntrance,engineeringBus,engineeringArrival} from './engineering-route.js';
 const labels={fast:'较快步行',shade:'避晒优先',gentle:'少爬坡优先',comfort:'舒适步行'};
 export function planJourney(dataset,from,to,options={}){
  const date=new Date(options.date||Date.now()),sun=sunContext(date,from,options.sunMode||'auto');
+ const stops=resolveStops(dataset.transit,dataset.stops,hongKongParts(date));
+ if(options.fromPlaceId?.startsWith('bus-stop-'))from=stops.find(s=>s.id===options.fromPlaceId.slice(9))?.coords||from;
+ if(options.toPlaceId?.startsWith('bus-stop-'))to=stops.find(s=>s.id===options.toPlaceId.slice(9))?.coords||to;
  const config={shortcuts:options.shortcuts!==false,elevatorWait:options.elevatorWait??1.5,avoidSteps:options.profile==='no-steps',sunFactor:sun.factor};
  const explicitEntrance=options.toPlaceId==='entrance-shb-5',explicitOrigin=options.fromPlaceId==='entrance-shb-5';
  const graphs=[['osm',new WalkGraph(dataset.graph,config)],...(!explicitEntrance&&!explicitOrigin?[['lands',new WalkGraph(dataset.lands,config)]]:[])];
@@ -32,6 +36,10 @@ export function planJourney(dataset,from,to,options={}){
    m.unknownCoverMinutes+=waitMinutes;
    add({...r,...m,steps:m.stairs,waitMinutes},profile==='fast'?'校巴接驳':'校巴 · 舒适接驳','osm');
   }
+ }
+ for(const r of directTransitAlternatives(graphs[0][1],dataset.transit,dataset.stops,from,to,{...options,date,profile:'fast'})){
+  const m=sumMetrics(r.legs.filter(l=>l.kind==='walk')),bus=r.legs.find(l=>l.kind==='bus'),waitMinutes=bus.wait;m.unknownCoverMinutes+=waitMinutes;
+  add({...r,...m,steps:m.stairs,waitMinutes},bus.variantLabel+' · 直达校巴','osm');
  }
  if(config.shortcuts&&['b-34','entrance-shb-5'].includes(options.toPlaceId)){
   const g=graphs[0][1],entrance=shbEntrance(g);

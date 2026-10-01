@@ -4,7 +4,7 @@ import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 maplibregl.setWorkerUrl(workerUrl);
 const fc=features=>({type:'FeatureCollection',features});
 const line=(coords,kind,cover='unknown')=>({type:'Feature',properties:{kind,cover},geometry:{type:'LineString',coordinates:(coords.length===1?[coords[0],coords[0]]:coords).map(c=>[c[1],c[0]])}});
-export async function createCampusMap(base,shortcuts,onSelect,onShortcut,onError,places=[]){
+export async function createCampusMap(base,shortcuts,onSelect,onShortcut,onError,places=[],busStops=[]){
  const map=new maplibregl.Map({container:'map',center:[114.2075,22.4192],zoom:16.1,pitch:48,bearing:-22,maxPitch:75,minZoom:14,maxZoom:20,maxBounds:[[114.197,22.408],[114.221,22.432]],attributionControl:{compact:true},style:{version:8,sources:{campus:{type:'geojson',data:base,attribution:'<a href="https://www.openstreetmap.org/copyright">© OpenStreetMap</a> · <a href="https://www.cuhk.edu.hk/chinese/campus/cuhk-campus-map.html">CUHK</a>'},terrain:{type:'raster-dem',tiles:[`${location.origin}${import.meta.env.BASE_URL}data/terrain/{z}/{x}/{y}.png`],encoding:'terrarium',tileSize:256,minzoom:12,maxzoom:12,bounds:[114.08,22.30,114.35,22.53],attribution:'<a href="https://github.com/tilezen/joerd/blob/master/docs/attribution.md">Terrain: Mapzen / SRTM</a>'}},layers:[
  {id:'bg',type:'background',paint:{'background-color':'#eef0e6'}},
  {id:'green',type:'fill',source:'campus',filter:['all',['==',['get','kind'],'green'],['==',['geometry-type'],'Polygon']],paint:{'fill-color':'#cbdcc2','fill-opacity':.75}},
@@ -49,10 +49,17 @@ export async function createCampusMap(base,shortcuts,onSelect,onShortcut,onError
  map.addLayer({id:'route-exposed',type:'line',source:'route',filter:['all',['==',['get','kind'],'walk'],['==',['get','cover'],'exposed']],paint:{'line-color':'#bf851d','line-width':5}});
  map.addLayer({id:'route-bus',type:'line',source:'route',filter:['==',['get','kind'],'bus'],paint:{'line-color':'#8253ae','line-width':4,'line-dasharray':[2,1.5]}});
  map.addLayer({id:'route-connector',type:'line',source:'route',filter:['==',['get','kind'],'connector'],paint:{'line-color':'#dd945c','line-width':3,'line-dasharray':[1,2]}});
+ let currentStops=busStops;
+ const stopFeatures=stops=>fc(stops.filter(s=>s.routes?.length).map(s=>({type:'Feature',properties:{id:s.id},geometry:{type:'Point',coordinates:[s.coords[1],s.coords[0]]}})));
+ map.addSource('bus-stops',{type:'geojson',data:stopFeatures(busStops)});
+ map.addLayer({id:'bus-stops',type:'circle',source:'bus-stops',paint:{'circle-color':'#8253ae','circle-radius':6,'circle-stroke-color':'#fff','circle-stroke-width':2}});
+ map.on('click','bus-stops',e=>{const s=currentStops.find(s=>s.id===e.features[0].properties.id);if(!s)return;showPopup(e.lngLat,s.name,'途经线路：'+s.routes.join(' / '),[s.relocation?.note||'',s.approximate?'地图位置近似，请按现场站牌上车。':''],[['查看车站 / 规划路线',()=>onSelect('bus-stop-'+s.id)]]);});
+ map.on('mouseenter','bus-stops',()=>map.getCanvas().style.cursor='pointer');map.on('mouseleave','bus-stops',()=>map.getCanvas().style.cursor='');
  for(const s of shortcuts){const el=document.createElement('button');el.className='lift-marker';el.textContent=s.type==='stairs'?'⋰':s.type==='bridge'?'↔':'↥';el.title=s.name+' · '+s.low+' ↔ '+s.high;el.setAttribute('aria-label',el.title);el.onclick=e=>{e.stopPropagation();showPopup([s.coords[1],s.coords[0]],s.name,s.low+' ↔ '+s.high,[s.description],[['查看来源与说明',()=>onShortcut(s.id)]]);};new maplibregl.Marker({element:el}).setLngLat([s.coords[1],s.coords[0]]).addTo(map);}
  const labelNames=[['大学站',22.41445,114.21018],['中央校园',22.4191,114.2058],['新亚书院',22.4221,114.209],['联合书院',22.4214,114.2057],['逸夫书院',22.4229,114.2017],['崇基学院',22.4161,114.2093],['敬文书院',22.425,114.2062]];
  for(const [name,lat,lng] of labelNames){const el=document.createElement('span');el.className='area-label';el.textContent=name;labels.push(new maplibregl.Marker({element:el}).setLngLat([lng,lat]).addTo(map));}
  return {map,
+  stops(stops){currentStops=stops;map.getSource('bus-stops').setData(stopFeatures(stops));},
   places(places,selected){markers.forEach(m=>m.remove());markers=[];for(const p of places.slice(0,65)){const el=document.createElement('button');el.className='place-dot '+(p.id===selected?'chosen':'');el.title=p.name;el.setAttribute('aria-label',p.name);el.innerHTML=p.id===selected?'<span></span>':'';el.onclick=e=>{e.stopPropagation();showPlace(p);};markers.push(new maplibregl.Marker({element:el}).setLngLat([p.coords[1],p.coords[0]]).addTo(map));}},
   focus(c,z=17.5){map.flyTo({center:[c[1],c[0]],zoom:z,duration:800});},
   three(enabled){map.easeTo({pitch:enabled?55:0,bearing:enabled?-22:0,duration:650});map.setLayoutProperty('buildings','visibility','visible');map.setPaintProperty('buildings','fill-extrusion-height',enabled?['case',['>', ['get','height'],0],['get','height'],['>', ['get','levels'],0],['*',['get','levels'],3.3],12]:0);map.setTerrain(enabled?{source:'terrain',exaggeration:1}:null);},

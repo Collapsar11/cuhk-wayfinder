@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import {serviceVariants} from '../src/transit-variants.js';
 const make=(id,name,stops,start,end,mins,days='weekday',extra={})=>({id,name,stops:stops.split(','),start,end,mins,days,source:`https://transport.cuhk.edu.hk/route/${id.toLowerCase()}/`,...extra});
 const night='1,22,2,4,na-circle,7,wys-up,shaw-up,55,56,18,20,21,shaw-down,wys-down,8,7,10,51,22,1';
 const routes=[
@@ -16,5 +17,10 @@ const routes=[
  make('7','转堂下行 · 逸夫','shaw-down,wys-down,8,7,10,51,52,23','08:18','17:18',[0,18],'teaching',{saturdayEnd:'13:18'})
 ];
 const data={effectiveFrom:'2026-09-01',retrievedAt:'2026-10-01',validThrough:'2027-08-31',routes,alerts:[{title:'环回东站上行临时迁站',date:'2026-09-28',stops:['62'],url:'https://transport.cuhk.edu.hk/newsdetails/bus-stop-temporary-relocation-campus-circuit-east-upward/'},{title:'环回东站下行临时迁站',date:'2026-09-19',stops:['63'],url:'https://transport.cuhk.edu.hk/'}],holidays:JSON.parse(fs.readFileSync('data/raw/food-holidays.json')),holidayYears:[2026],teachingTerms:[['2026-09-07','2026-12-05'],['2027-01-11','2027-04-24']],readingWeeks:[['2027-03-08','2027-03-13']],calendarSource:'https://rgsntl.rgs.cuhk.edu.hk/aqs_prd_applx/public/handbook/view_document.aspx?id=1510&lang=zh&seq=1',holidaySource:'https://www.gov.hk/en/about/abouthk/holiday/index.htm',note:'发车时刻来自官方 2026-09-01 时刻表；中途站到站时刻和行驶时间为模型估算，非 GPS 实时数据。'};
+data.alerts=[
+ {type:'relocation',title:'环回东站上行临时迁站',date:'2026-09-28',stops:['62'],coords:[22.41830,114.21270],approximate:true,accuracy:'示意图近似定位，非测绘坐标',note:'4 / 8 号线仍停靠：临时站在夏鼎基运动场东南侧、网球场南端弯道附近。位置按官方示意图近似标注，请沿现场临时站牌上车；步行距离和时间为估算。',url:'https://transport.cuhk.edu.hk/newsdetails/bus-stop-temporary-relocation-campus-circuit-east-upward/'},
+ {type:'relocation',title:'环回东站下行临时迁站',date:'2026-09-19',startMinute:515,stops:['63'],coords:[22.41928,114.21297],approximate:true,accuracy:'示意图近似定位，非测绘坐标',note:'8 号线下行临时站迁至物业管理处大楼外侧道路旁。位置按官方示意图近似标注，请以现场站牌为准。',url:'https://transport.cuhk.edu.hk/newsdetails/bus-stop-temporary-relocation-campus-circuit-east-downwards/'}
+];
+data.variants=serviceVariants(routes);
 fs.writeFileSync('public/data/transit.json',JSON.stringify(data));
-console.log('12 routes compiled from visually checked 2026 timetables');
+console.log(`${routes.length} official route numbers, ${data.variants.length} disjoint service variants`);
