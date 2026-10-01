@@ -9,3 +9,13 @@ data/raw
 playwright-report/
 test-results/
 *.log
+dist-android/
+releases/
+.signing/
+*.jks
+*.keystore
+android/.gradle/
+android/.kotlin/
+android/local.properties
+android/**/build/
+android/app/src/main/assets/

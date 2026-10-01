@@ -12,6 +12,7 @@ The application's MIT license does **not** relicense the following data, assets,
 | MapLibre GL JS | Map rendering | BSD-3-Clause. [Project](https://github.com/maplibre/maplibre-gl-js). |
 | OpenCC-JS | Traditional/simplified Chinese search | MIT application/library portions; upstream conversion data have their own notices, including Apache-2.0. See `node_modules/opencc-js/THIRD_PARTY_LICENSES.md`. [Project](https://github.com/nk2028/opencc-js). |
 | Lucide | Interface icons | ISC. [License](https://lucide.dev/license). |
+| AndroidX WebKit and AndroidX dependencies | APK local HTTPS asset loading | Apache-2.0. Copyright The Android Open Source Project. [AndroidX](https://developer.android.com/jetpack/androidx), [license](https://www.apache.org/licenses/LICENSE-2.0). |
 
 Google Maps and CU BUS are linked external services; the app does not redistribute their tiles, photos, 3D models, or real-time bus data. Brand names are used to identify services.
 

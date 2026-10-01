@@ -99,7 +99,7 @@ function renderRoutes(){const r=state.route,options=routeOptions(),container=$('
  });
  const mapButton=$('#route-map'),shareButton=$('#share-route');
  if(mapButton)mapButton.onclick=()=>{state.mapView=true;syncShell();mapUi?.resize();};
- if(shareButton)shareButton.onclick=async()=>{const url=new URL(location.href);url.searchParams.set('from',state.origin);url.searchParams.set('to',state.destination);if(state.origin==='location')url.searchParams.delete('from');try{await navigator.clipboard.writeText(url.toString());toast('已复制路线链接（不包含你的 GPS 位置）。');}catch{toast('浏览器暂不允许复制。可在地址栏保存当前地点链接。');}};
+ if(shareButton)shareButton.onclick=async()=>{const url=new URL(import.meta.env.VITE_ANDROID==='true'?'https://collapsar11.github.io/cuhk-wayfinder/':location.href);url.searchParams.set('from',state.origin);url.searchParams.set('to',state.destination);if(state.origin==='location')url.searchParams.delete('from');try{if(import.meta.env.VITE_ANDROID==='true'){if(!window.WayfinderAndroid?.copyRoute(url.toString()))throw Error('复制失败');}else await navigator.clipboard.writeText(url.toString());toast('已复制路线链接（不包含你的 GPS 位置）。');}catch{toast('浏览器暂不允许复制。可在地址栏保存当前地点链接。');}};
  mapUi?.stops(resolveStops(dataset.transit,dataset.stops,hongKongParts(new Date(r.options.date))));mapUi?.route(current,r.from.coords,current.arrivalCoords||r.to.coords);refreshIcons();
 }
 function renderRouteDetails(current,r){return `<div class="notice soft">${current.terrain?'香港地政总署三维路网计算，坡度计入耗时；带未解析开放时段的路段已排除。楼宇入口和通行情况仍需现场核对。':current.kind==='transit'?'校巴发车采用官方时刻表；中途站到站、行车和等车时间为估算，非 CU BUS 实时位置。紫色虚线为站序示意。':'按现有路网、步速和电梯等候估算；不是现场实测时间。'}${r.options.profile==='no-steps'?' 已避开标注的楼梯，但资料不足以保证全程无障碍。':''}</div>${current.kind==='transit'?`<div class="day-note">含约 ${round(current.waitMinutes)} 分钟候车 / 上车余量；候车点遮蔽未核实。卡片中的距离与爬升只统计步行部分。</div>`:''}${current.kind==='walk'&&current.segments.some(s=>s.shortcut)?'<div class="notice">此路线经过穿楼近路，电梯开放时间、门禁和设备状态尚未现场确认。关门时请关闭“比较电梯 / 连廊近路”后重算；路网不全时可能无可用替代。</div>':''}<div class="steps">${current.guide==='pgh-shb'?engineeringGuide():''}${renderSteps(current)}</div><div class="button-row">${userLink(googleLink(r.to,r.from),'Google Maps 步行')}<button class="subtle-btn" id="route-map">${icon('map')}看路线图</button></div><button class="subtle-btn" id="share-route" style="width:100%">${icon('share-2')}复制路线链接</button><p class="day-note">橙色虚线是楼宇坐标到路网的接驳示意，入口位置仍需现场核对。Google Maps 会独立计算路线。</p>`;}
@@ -149,7 +149,15 @@ async function boot(){try{
  const params=new URLSearchParams(location.search);if(getPlace(params.get('to'))){state.destination=params.get('to');state.origin=getPlace(params.get('from'))?.id||null;state.tab='plan';}
  root();render();
  try{mapUi=await createCampusMap(base,shortcuts,selectPlace,id=>{state.tab='shortcuts';state.selected=null;state.mapView=false;syncShell();renderShortcuts(id);},message=>{if(!$('.map-error')){const el=document.createElement('div');el.className='map-error';el.textContent='部分地图图层加载失败；地点搜索与路线计算仍可使用。';$('.map-wrap').append(el);}console.warn(message);},dataset.places,resolveStops(transit,stops,hongKongParts()));if(state.tab==='explore')renderList();}catch(e){$('.map-wrap').insertAdjacentHTML('beforeend','<div class="map-error">当前设备未能启动 3D 地图。可继续查地点和路线，或在 Google Maps 查看。</div>');console.error(e);}
- if('serviceWorker'in navigator&&import.meta.env.PROD)navigator.serviceWorker.register(import.meta.env.BASE_URL+'sw.js').then(()=>navigator.serviceWorker.ready).then(()=>{const el=$('#cache-status');if(el)el.textContent='已准备好离线使用';}).catch(()=>toast('离线缓存未完成；当前可继续在线使用。'));
+ if(import.meta.env.VITE_ANDROID==='true'){$('#cache-status').textContent='校园数据已内置，可离线使用';}
+ else if('serviceWorker'in navigator&&import.meta.env.PROD)navigator.serviceWorker.register(import.meta.env.BASE_URL+'sw.js').then(()=>navigator.serviceWorker.ready).then(()=>{const el=$('#cache-status');if(el)el.textContent='已准备好离线使用';}).catch(()=>toast('离线缓存未完成；当前可继续在线使用。'));
  window.addEventListener('offline',()=>toast('已离线：使用本地校园数据。外部链接暂不可用。'));
  }catch(e){$('#app').innerHTML=`<div class="boot"><div>校园数据暂时无法加载。<br><small>${esc(e.message)}</small><br><button onclick="location.reload()">重试</button></div></div>`;}}
+if(import.meta.env.VITE_ANDROID==='true')window.wayfinderBack=()=>{
+ if(state.mapView){state.mapView=false;syncShell();return true;}
+ if(state.selected){state.selected=null;render();return true;}
+ if(state.tab==='plan'&&state.expandedRoute!==null){state.expandedRoute=null;renderRoutes();return true;}
+ if(state.tab!=='explore'){state.tab='explore';render();return true;}
+ return false;
+};
 boot();

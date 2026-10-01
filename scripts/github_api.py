@@ -1,12 +1,16 @@
 """Deploy helper: reuse Git's credential helper without writing or printing secrets."""
 import urllib.request,urllib.error,json,subprocess,os,sys
 
-def request(method,path,data=None):
+def get_token():
  p=subprocess.run(['git','credential','fill'],input='protocol=https\nhost=github.com\n\n',text=True,capture_output=True,env={**os.environ,'GIT_TERMINAL_PROMPT':'0'},timeout=20)
  fields=dict(x.split('=',1) for x in p.stdout.splitlines() if '=' in x)
  token=os.environ.get('GH_TOKEN') or os.environ.get('GITHUB_TOKEN') or fields.get('password')
  if not token:raise RuntimeError('No GitHub credential available')
- req=urllib.request.Request('https://api.github.com'+path,data=json.dumps(data).encode() if data is not None else None,method=method,headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','User-Agent':'CUHK-Wayfinder-Deployment'})
+ return token
+
+def request(method,path,data=None):
+ token=get_token()
+ req=urllib.request.Request('https://api.github.com'+path,data=json.dumps(data).encode() if data is not None else None,method=method,headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json','Content-Type':'application/json','X-GitHub-Api-Version':'2022-11-28','User-Agent':'CUHK-Wayfinder-Deployment'})
  try:
   with urllib.request.urlopen(req,timeout=40) as r:return r.status,json.load(r) if r.status!=204 else {}
  except urllib.error.HTTPError as e:return e.code,json.load(e)
