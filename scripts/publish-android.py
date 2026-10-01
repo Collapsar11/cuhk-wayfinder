@@ -65,6 +65,10 @@ for path in (apk, checksums):
 code, release = request('PATCH', repository + '/releases/' + str(release_id), {'draft': False, 'make_latest': 'true'})
 if code != 200:
     raise SystemExit(f'Publish failed: HTTP {code}; inspect the existing draft.')
+# Draft asset URLs can contain an untagged placeholder; read the published URLs.
+code, release = request('GET', repository + '/releases/' + str(release_id))
+if code != 200 or release.get('draft'):
+    raise SystemExit('Release published, but its final download URLs could not be verified.')
 print(json.dumps({'release': release['html_url'], 'assets': [
     {'name': a['name'], 'url': a['browser_download_url'], 'size': a['size'], 'digest': a.get('digest')}
-    for a in assets.values()]}, ensure_ascii=False, indent=2))
+    for a in release['assets']]}, ensure_ascii=False, indent=2))
